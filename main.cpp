@@ -15,14 +15,18 @@ public:
         m_age(age){
             m_job.position = "default";
             m_job.years = age;
+            job.push_back({});
+            job.push_back({});
+            job.push_back({});
         }
 private:
     std::string m_name;
     std::string m_lastName;
     std::size_t m_age;
     Job m_job;
+    std::vector<Job> job;
 
-    _PACK_THESE_(Person, m_name, m_lastName, m_age, m_job);
+    _PACK_THESE_(Person, m_name, job, m_lastName, m_age, m_job);
 };
 
 int main() {

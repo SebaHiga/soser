@@ -16,11 +16,32 @@ public:
     strfyH& operator<< (const T& val){
         ss.str(std::string());
         ss << val;
-        // (*arr)[index] = ss.str();
-        index++;
         arr.emplace_back(ss.str());
         return *this;
     }
+
+    template<template<class...> class CNTR, typename... T> 
+    void containerHelper(CNTR<T...> container){
+        ss.str(std::string());
+        ss << '[';
+
+        if(!container.empty()){
+            for(auto it = container.begin(); it != container.end(); it++){
+                ss << *it << ", ";
+            }
+            ss << container.back();
+        }
+
+        ss << ']';
+        arr.emplace_back(ss.str());
+    }
+
+    template<typename T>
+    strfyH& operator<< (std::vector<T>& container){
+        containerHelper(container);
+        return *this;
+    }
+
 };
 
 template<class... T>
@@ -51,7 +72,7 @@ auto iniNames(const std::string_view &names){
 }
 
 template<typename T>
-auto serialize (T& thing){
+auto serializeObject (T& thing){
     std::stringstream ss;
 
     ss << '[';
@@ -81,7 +102,7 @@ auto _pack () {\
 }\
 template<typename STRM>\
 friend STRM& operator<< (STRM &ss, TYPE &p){\
-    ss << serialize(p);\
+    ss << serializeObject(p);\
     return ss;\
 }\
 private:
