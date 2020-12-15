@@ -32,8 +32,9 @@ public:
             m_job.position = "default";
             m_job.years = age;
             job.push_back({});
-            job.push_back({});
-            job.push_back({});
+            job.push_back({"Nuclear plant technician", 20});
+            job.push_back({"Expert gardener", 2});
+            job.push_back({"what", 20});
         }
 private:
     std::string m_name;

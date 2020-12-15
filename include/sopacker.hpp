@@ -16,7 +16,8 @@ public:
     strfyH& operator<< (const T& val){
         ss.str(std::string());
         ss << val;
-        arr.emplace_back(ss.str());
+        auto str = ss.str();
+        arr.emplace_back(str);
         return *this;
     }
 
@@ -30,12 +31,13 @@ public:
     void containerHelper(CNTR<T...> container){
         strfyH tmp;
         tmp << '[';
+        const char *separator = "";
 
         if(!container.empty()){
             for(auto it = container.begin(); it != container.end(); it++){
-                tmp << *it << ", ";
+                tmp << separator << *it ;
+                separator = ", ";
             }
-            tmp << container.back();
         }
 
         tmp << ']';
