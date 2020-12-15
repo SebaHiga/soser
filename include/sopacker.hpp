@@ -20,20 +20,26 @@ public:
         return *this;
     }
 
+    std::string unpack(){
+        ss.str(std::string());
+        for(const auto& data : arr) ss << data;
+        return ss.str();
+    }
+
     template<template<class...> class CNTR, typename... T> 
     void containerHelper(CNTR<T...> container){
-        ss.str(std::string());
-        ss << '[';
+        strfyH tmp;
+        tmp << '[';
 
         if(!container.empty()){
             for(auto it = container.begin(); it != container.end(); it++){
-                ss << *it << ", ";
+                tmp << *it << ", ";
             }
-            ss << container.back();
+            tmp << container.back();
         }
 
-        ss << ']';
-        arr.emplace_back(ss.str());
+        tmp << ']';
+        arr.emplace_back(tmp.unpack());
     }
 
     template<typename T>
@@ -71,13 +77,12 @@ auto iniNames(const std::string_view &names){
     return split(names, ", ");
 }
 
-template<typename T>
-auto serializeObject (T& thing){
+template<typename T, typename TT>
+auto serializeObject (T& names, TT& vals){
     std::stringstream ss;
 
     ss << '[';
 
-    auto [names, vals] = thing._pack();
     for(std::size_t i = 0; i < names.size()-1; i++){
         ss << names[i] << '=' << vals[i] << ", ";
     }
@@ -92,17 +97,16 @@ auto serializeObject (T& thing){
 
 #define _PACK_THESE_(TYPE, AR...)\
 public:\
-mutable std::vector<std::string_view> _memberNames;\
-mutable std::vector<std::string> _memberValues;\
-auto _pack () {\
+    std::vector<std::string_view> _memberNames;\
+    std::vector<std::string> _memberValues;\
+auto _prepare () {\
     if(_memberNames.size() == 0)\
         _memberNames = iniNames(#AR);\
     _memberValues = strArrVal(AR);\
-    return std::tie(_memberNames, _memberValues);\
 }\
-template<typename STRM>\
-friend STRM& operator<< (STRM &ss, TYPE &p){\
-    ss << serializeObject(p);\
+friend strfyH& operator<< (strfyH &ss, TYPE &p){\
+    p._prepare();\
+    ss << serializeObject(p._memberNames, p._memberValues);\
     return ss;\
 }\
 private:

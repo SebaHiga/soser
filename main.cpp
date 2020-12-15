@@ -4,7 +4,23 @@
 struct Job{
     std::string position;
     int years = 0;
-    _PACK_THESE_(Job, position, years)
+    
+public:
+    // mutable std::vector<std::string_view> _memberNames;
+    // mutable std::vector<std::string> _memberValues;
+    // auto _prepare () {
+    //     if(_memberNames.size() == 0)
+    //         _memberNames = iniNames("position, years");
+    //     _memberValues = strArrVal(position, years);
+    // }
+
+    // friend strfyH& operator<< (strfyH &ss, Job &p){
+    //     p._prepare();
+    //     ss << serializeObject(p._memberNames, p._memberValues);
+    //     return ss;
+    // }
+
+    _PACK_THESE_(Job, position, years);
 };
 
 class Person{
@@ -26,19 +42,28 @@ private:
     Job m_job;
     std::vector<Job> job;
 
-    _PACK_THESE_(Person, m_name, job, m_lastName, m_age, m_job);
+    _PACK_THESE_(Person, m_name, m_lastName, m_age, m_job, job);
 };
 
 int main() {
     Job p;
+    strfyH strh, strh2;
 
-    std::stringstream ss;
-    ss << p;
-    std::cout << ss.str() << '\n';
+    strh << p;
+    std::cout << strh.unpack() << '\n';
+    // std::stringstream ss;
+    // ss << p;
+    // std::cout << ss.str() << '\n';
     
     Person per("John", "Doe", 39);
 
-    std::cout << per << '\n';
+    strh2 << per;
+
+    std::cout << strh2.unpack();
+
+    // std::cout << per << '\n';
+
+
 
     return 0;
 }
