@@ -1,26 +1,23 @@
 #include <iostream>
 #include "sopacker.hpp"
-
+#include <fmt/format.h>
 struct Job{
     std::string position;
     int years = 0;
-    
-public:
-    // mutable std::vector<std::string_view> _memberNames;
-    // mutable std::vector<std::string> _memberValues;
-    // auto _prepare () {
-    //     if(_memberNames.size() == 0)
-    //         _memberNames = iniNames("position, years");
-    //     _memberValues = strArrVal(position, years);
-    // }
 
-    // friend strfyH& operator<< (strfyH &ss, Job &p){
-    //     p._prepare();
-    //     ss << serializeObject(p._memberNames, p._memberValues);
-    //     return ss;
-    // }
 
-    _PACK_THESE_(Job, position, years);
+//    _PACK_THESE_(Job, position, years);
+
+    std::array<std::string_view, argCount("position, years")> _memberNames{iniNames<argCount("position, years")>("position, years")};
+    std::array<std::string, argCount("position, years")> _memberValues;
+auto _prepare () {
+    _memberValues = strArrVal<argCount("position, years")>(position, years);
+}
+friend strfyH<argCount("position, years")>& operator<< (strfyH<argCount("position, years")> &ss, Job &p){
+    p._prepare();
+    ss << serializeObject(p._memberNames, p._memberValues);
+    return ss;
+}
 };
 
 class Person{
@@ -29,42 +26,39 @@ public:
         m_name(name),
         m_lastName(lastName),
         m_age(age){
-            m_job.position = "default";
-            m_job.years = age;
-            job.push_back({});
-            job.push_back({"Nuclear plant technician", 20});
-            job.push_back({"Expert gardener", 2});
-            job.push_back({"what", 20});
+            jobs.push_back({"Nuclear plant technician", 20});
+            jobs.push_back({"Expert gardener", 2});
+            jobs.push_back({"Unemployed", 20});
         }
-private:
+public:
     std::string m_name;
     std::string m_lastName;
     std::size_t m_age;
-    Job m_job;
-    std::vector<Job> job;
+    std::vector<Job> jobs;
+    std::vector<int> m_numbers{1, -2, 4};
 
-    _PACK_THESE_(Person, m_name, m_lastName, m_age, m_job, job);
+    _PACK_THESE_(Person, m_name, m_numbers, jobs);
 };
 
 int main() {
     Job p;
-    strfyH strh, strh2;
+    strfyH<argCount("position, years")> strh;
+    strfyH<2> strh2;
 
     strh << p;
     std::cout << strh.unpack() << '\n';
-    // std::stringstream ss;
-    // ss << p;
-    // std::cout << ss.str() << '\n';
+    // // std::stringstream ss;
+    // // ss << p;
+    // // std::cout << ss.str() << '\n';
     
     Person per("John", "Doe", 39);
 
-    strh2 << per;
+    per._prepare();
+    std::cout << serializeObject(per._memberNames, per._memberValues);;
 
     std::cout << strh2.unpack();
 
-    // std::cout << per << '\n';
-
-
+    // // std::cout << per << '\n';
 
     return 0;
 }
