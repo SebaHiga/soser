@@ -61,7 +61,6 @@ public:
         }
 
         tmp << ']';
-        // std::cout << N; exit(1);
         push(tmp.unpack());
     }
 
@@ -75,15 +74,11 @@ public:
 
 template<size_t N, class... T>
 auto strArrVal(T& ...args){
-    // std::array<std::string, N> arr;
-    // strfyH<0> strHelper(sizeof...(T));
+    strfyH<N> strHelper(sizeof...(T));
+
     (strHelper << ... << args);
 
-    for(size_t i = 0; i < N; i++){
-        arr[i] = strHelper.vect[i];
-    }
-
-    return arr;
+    return strHelper.arr;
 }
 
 template<size_t N>
@@ -91,8 +86,8 @@ constexpr auto split(const std::string_view &str, const std::string_view &delim)
 {
     std::array<std::string_view, N> tokens;
     size_t prev = 0, pos = 0, index = 0;
-    do
-    {
+
+    do{
         pos = str.find(delim, prev);
         if (pos == std::string::npos) pos = str.length();
         auto token = str.substr(prev, pos-prev);
@@ -109,7 +104,7 @@ constexpr auto iniNames(const std::string_view &names){
     return split<N>(names, ", ");
 }
 
-template<typename T, typename TT>
+template<int N, typename T, typename TT>
 auto serializeObject (T& names, TT& vals){
     std::stringstream ss;
 
@@ -138,12 +133,10 @@ constexpr const auto argCount(const std::string_view& str) noexcept{
 #define _PACK_THESE_(TYPE, AR...)\
 std::array<std::string_view, argCount(#AR)> _memberNames{iniNames<argCount(#AR)>(#AR)};\
 std::array<std::string, argCount(#AR)> _memberValues;\
-auto _prepare () {\
-_memberValues = strArrVal<argCount(#AR)>(AR);\
-}\
-friend strfyH<argCount(#AR)>& operator<< (strfyH<argCount(#AR)> &ss, TYPE &p){\
+auto _prepare () {_memberValues = strArrVal<argCount(#AR)>(AR);}\
+friend strfyH<0>& operator<< (strfyH<0> &ss, TYPE &p){\
 p._prepare();\
-ss << serializeObject(p._memberNames, p._memberValues);\
+ss << serializeObject<argCount(#AR)>(p._memberNames, p._memberValues);\
 return ss;\
 }\
 private:
