@@ -16,6 +16,14 @@ public:
     std::size_t index = 0;
 
     template<typename T>
+    strfyH& operator<< (T& val){
+        ss.str(std::string());
+        ss << val;
+        push(ss.str());        
+        return *this;
+    }
+
+    template<typename T>
     strfyH& operator<< (const T& val){
         ss.str(std::string());
         ss << val;
@@ -133,10 +141,13 @@ constexpr const auto argCount(const std::string_view& str) noexcept{
 #define _PACK_THESE_(TYPE, AR...)\
 std::array<std::string_view, argCount(#AR)> _memberNames{iniNames<argCount(#AR)>(#AR)};\
 std::array<std::string, argCount(#AR)> _memberValues;\
-auto _prepare () {_memberValues = strArrVal<argCount(#AR)>(AR);}\
-friend strfyH<0>& operator<< (strfyH<0> &ss, TYPE &p){\
-p._prepare();\
-ss << serializeObject<argCount(#AR)>(p._memberNames, p._memberValues);\
+auto _serialize () {_memberValues = strArrVal<argCount(#AR)>(AR); return serializeObject<argCount(#AR)>(_memberNames, _memberValues);}\
+template<int N>\
+friend strfyH<N>& operator<< (strfyH<N> &ss, TYPE &p){\
+ss << p._serialize();\
 return ss;\
 }\
-private:
+friend std::stringstream& operator<< (std::stringstream& ss, TYPE& p){\
+ss << p._serialize();\
+return ss;\
+}

@@ -26,7 +26,7 @@ public:
     Job j;
     std::vector<int> m_numbers{1, -2, 4};
 
-    _PACK_THESE_(Person, m_name, jobs);
+    _PACK_THESE_(Person, m_name, m_age, j, jobs);
 };
 
 int main() {
