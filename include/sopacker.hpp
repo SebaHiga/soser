@@ -11,11 +11,14 @@ concept is_integral = std::is_integral<T>::value;
 template <class T>
 concept is_char_array = std::is_same<T, const char*>::value;
 
+template <class T>
+concept is_char = std::is_same<T, const char>::value;
+
 template<class T>
 concept is_string_class = requires (T str) {str.substr();};
 
 template<class T>
-concept is_string = is_char_array<T> || is_string_class<T>;
+concept is_string = is_char_array<T> || is_char<T> || is_string_class<T>;
 
 template<class T>
 concept has_serialize = requires (T data) {data._serialize();};
@@ -25,15 +28,17 @@ struct strfyH{
 public:
     strfyH(){}
     strfyH(size_t memSize){vect.reserve(memSize);}
-    std::stringstream ss;
     std::array<std::string, N> arr;
     std::vector<std::string> vect;
     std::size_t index = 0;
 
+    inline void openBraket(){vect.push_back("[");}
+    inline void closeBraket(){vect.push_back("]");}
+
     template<is_integral T>
     strfyH& operator<< (const T& val){
         std::cout << "with N = " << N << '\n';
-        std::cout << "using integral " << std::to_string(val) << '\n';
+        std::cout << "using integral " << val << '\n';
         push((std::to_string(val)));
         return *this;
     }
@@ -42,7 +47,7 @@ public:
     strfyH& operator<< (const T& val){
         std::cout << "with N = " << N << '\n';
         std::cout << "using string " << val << '\n';
-        push(val);
+        push(std::string(val));
         return *this;
     }
 
@@ -54,38 +59,14 @@ public:
         return *this;
     }
 
-    // Cannot deduce, use generic
-    // template<typename T>
-    // strfyH& operator<< (T& val){
-    //     ss.str(std::string());
-    //     std::cout << "undeduceable\n";
-    //     ss << val;
-    //     push(ss.str());        
-    //     return *this;
-    // }
-
-    template<typename T>
-    strfyH& operator<< (const T& val){
-        std::cout << "with N = " << N << '\n';
-        std::cout << "using default\n";
-
-        ss.str(std::string());
-        ss << val;
-        push(ss.str());        
-        return *this;
-    }
-
     std::string unpack(){
-        ss.str(std::string());
+        std::stringstream ss;
 
         if (vect.size() > 0){
             for(const auto& data : vect) ss << data;
         }
         else{
-            for(const auto& data : arr){
-                std::cout << data << " - ";
-                ss << data;
-            };
+            for(const auto& data : arr) ss << data;
         }
 
         return ss.str();
@@ -106,7 +87,7 @@ public:
     template<template<class...> class CNTR, typename... T> 
     void containerHelper(CNTR<T...> container){
         strfyH<0> tmp(container.size());
-        tmp << '[';
+        tmp.openBraket();
         const char *separator = "";
 
         if(!container.empty()){
@@ -116,12 +97,13 @@ public:
             }
         }
 
-        tmp << ']';
+        tmp.closeBraket();
         push(tmp.unpack());
     }
 
     template<typename T>
     strfyH& operator<< (std::vector<T>& container){
+        std::cout << "using container helper\n";
         containerHelper(container);
         return *this;
     }

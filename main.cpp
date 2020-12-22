@@ -2,6 +2,8 @@
 #include "sopacker.hpp"
 
 struct Job{
+    Job () = default;
+    Job(std::string str, int y) : position(str), years(y) {}
     std::string position = "none";
     int years = 0;
 
@@ -14,6 +16,8 @@ public:
         m_name(name),
         m_lastName(lastName),
         m_age(age){
+            jobs.emplace_back("brain washer", 2);
+            jobs.emplace_back("swimmer", 4);
         }
 public:
     std::string m_name = "none";
@@ -23,7 +27,7 @@ public:
     Job j;
     std::vector<int> m_numbers{1, -2, 4};
 
-    _PACK_THESE_(Person, m_name, m_lastName);
+    _PACK_THESE_(Person, m_name, m_lastName, m_numbers, j, jobs);
 };
 
 int main() {
@@ -35,10 +39,10 @@ int main() {
     strh << p;
     std::cout << strh.unpack() << '\n';
     
-    // Person per("John", "Doe", 39);
+    Person per("John", "Doe", 39);
 
-    // strh2 << per;
-    // std::cout << strh2.unpack() << '\n';
+    strh2 << per;
+    std::cout << strh2.unpack() << '\n';
 
     return 0;
 }
