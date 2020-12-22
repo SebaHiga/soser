@@ -25,7 +25,7 @@ template<class T>
 concept is_string = is_char_array<T> || is_char<T> || is_string_class<T>;
 
 template<class T>
-concept has_serialize = requires (T data) {data._serialize();};
+concept has_so_serialize = requires (T data) {data._so_serialize();};
 
 template<class T>
 concept has_begin = requires (T data) {data.begin();};
@@ -52,12 +52,10 @@ public:
         else if constexpr (detail::is_string<T>){
             push("\"" + std::string(val) + "\"");
         }
-        else if constexpr (detail::has_serialize<T>){
-            push(val._serialize());
+        else if constexpr (detail::has_so_serialize<T>){
+            push(val._so_serialize());
         }
-        else{
-            std::cout << "cnat deduce wtf: " << typeid(val).name() << '\n';
-        }
+        
         return *this;
     }
 
@@ -178,12 +176,12 @@ constexpr const auto argCount(const std::string_view& str) noexcept{
 
 #define _PACK_THESE_(TYPE,...)\
 private:\
-std::array<std::string_view, sopack::argCount(#__VA_ARGS__)> _memberNames{sopack::iniNames<sopack::argCount(#__VA_ARGS__)>(#__VA_ARGS__)};\
-mutable std::array<std::string, sopack::argCount(#__VA_ARGS__)> _memberValues;\
+std::array<std::string_view, sopack::argCount(#__VA_ARGS__)> _so_memberNames{sopack::iniNames<sopack::argCount(#__VA_ARGS__)>(#__VA_ARGS__)};\
+mutable std::array<std::string, sopack::argCount(#__VA_ARGS__)> _so_memberValues;\
 public:\
-decltype(auto) _serialize () const {\
-_memberValues = sopack::toStrArr<sopack::argCount(#__VA_ARGS__)>(__VA_ARGS__);\
-return sopack::serializeObject<sopack::argCount(#__VA_ARGS__)>(_memberNames, _memberValues);\
+decltype(auto) _so_serialize () const {\
+_so_memberValues = sopack::toStrArr<sopack::argCount(#__VA_ARGS__)>(__VA_ARGS__);\
+return sopack::serializeObject<sopack::argCount(#__VA_ARGS__)>(_so_memberNames, _so_memberValues);\
  }\
 
 
