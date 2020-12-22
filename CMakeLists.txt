@@ -10,4 +10,6 @@ target_include_directories(sop PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
-add_compile_options(-Wall -Wextra -pedantic -Werror -O3)
+set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -fconcepts -Wall -Wextra -pedantic -Werror -O3")
+
+add_compile_options( -fconcepts -Wall -Wextra -pedantic -Werror -O3 )

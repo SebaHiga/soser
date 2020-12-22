@@ -5,6 +5,21 @@
 #include <array>
 #include <tuple>
 
+template <class T>
+concept is_integral = std::is_integral<T>::value;
+
+template <class T>
+concept is_char_array = std::is_same<T, const char*>::value;
+
+template<class T>
+concept is_string_class = requires (T str) {str.substr();};
+
+template<class T>
+concept is_string = is_char_array<T> || is_string_class<T>;
+
+template<class T>
+concept has_serialize = requires (T data) {data._serialize();};
+
 template<size_t N>
 struct strfyH{
 public:
@@ -15,16 +30,45 @@ public:
     std::vector<std::string> vect;
     std::size_t index = 0;
 
-    template<typename T>
-    strfyH& operator<< (T& val){
-        ss.str(std::string());
-        ss << val;
-        push(ss.str());        
+    template<is_integral T>
+    strfyH& operator<< (const T& val){
+        std::cout << "with N = " << N << '\n';
+        std::cout << "using integral " << std::to_string(val) << '\n';
+        push((std::to_string(val)));
         return *this;
     }
 
+    template<is_string T>
+    strfyH& operator<< (const T& val){
+        std::cout << "with N = " << N << '\n';
+        std::cout << "using string " << val << '\n';
+        push(val);
+        return *this;
+    }
+
+    template<has_serialize T>
+    strfyH& operator<< (T& val){
+        std::cout << "with N = " << N << '\n';
+        std::cout << "using serialize\n";
+        push(val._serialize());
+        return *this;
+    }
+
+    // Cannot deduce, use generic
+    // template<typename T>
+    // strfyH& operator<< (T& val){
+    //     ss.str(std::string());
+    //     std::cout << "undeduceable\n";
+    //     ss << val;
+    //     push(ss.str());        
+    //     return *this;
+    // }
+
     template<typename T>
     strfyH& operator<< (const T& val){
+        std::cout << "with N = " << N << '\n';
+        std::cout << "using default\n";
+
         ss.str(std::string());
         ss << val;
         push(ss.str());        
@@ -38,7 +82,10 @@ public:
             for(const auto& data : vect) ss << data;
         }
         else{
-            for(const auto& data : arr) ss << data;
+            for(const auto& data : arr){
+                std::cout << data << " - ";
+                ss << data;
+            };
         }
 
         return ss.str();
@@ -50,6 +97,7 @@ public:
             arr[index] = str;
         }
         else{
+            std::cout << "using dinamic\n";
             vect.emplace_back(str);
         }
         index++;
@@ -86,7 +134,7 @@ auto strArrVal(T& ...args){
 
     (strHelper << ... << args);
 
-    return strHelper.arr;
+    return std::move(strHelper.arr);
 }
 
 template<size_t N>
@@ -115,7 +163,6 @@ constexpr auto iniNames(const std::string_view &names){
 template<int N, typename T, typename TT>
 auto serializeObject (T& names, TT& vals){
     std::stringstream ss;
-
     ss << '[';
 
     for(std::size_t i = 0; i < names.size()-1; i++){
@@ -138,16 +185,15 @@ constexpr const auto argCount(const std::string_view& str) noexcept{
 }
 
 
-#define _PACK_THESE_(TYPE, AR...)\
-std::array<std::string_view, argCount(#AR)> _memberNames{iniNames<argCount(#AR)>(#AR)};\
-std::array<std::string, argCount(#AR)> _memberValues;\
-auto _serialize () {_memberValues = strArrVal<argCount(#AR)>(AR); return serializeObject<argCount(#AR)>(_memberNames, _memberValues);}\
-template<int N>\
-friend strfyH<N>& operator<< (strfyH<N> &ss, TYPE &p){\
-ss << p._serialize();\
-return ss;\
-}\
-friend std::stringstream& operator<< (std::stringstream& ss, TYPE& p){\
-ss << p._serialize();\
-return ss;\
-}
+#define _PACK_THESE_(TYPE,...)\
+private:\
+std::array<std::string_view, argCount(#__VA_ARGS__)> _memberNames{iniNames<argCount(#__VA_ARGS__)>(#__VA_ARGS__)};\
+std::array<std::string, argCount(#__VA_ARGS__)> _memberValues;\
+public:\
+auto _serialize () {\
+_memberValues = strArrVal<argCount(#__VA_ARGS__)>(__VA_ARGS__);\
+std::cout << "retuning object values\n";\
+return serializeObject<argCount(#__VA_ARGS__)>(_memberNames, _memberValues);\
+ }\
+
+
