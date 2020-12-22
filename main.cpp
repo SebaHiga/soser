@@ -32,8 +32,8 @@ public:
 
 int main() {
     Job p;
-    strfyH<1> strh;
-    strfyH<1> strh2;
+    sopack::strfyH<1> strh;
+    sopack::strfyH<1> strh2;
 
     // strh << p;
     strh << p;

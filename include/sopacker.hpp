@@ -5,6 +5,10 @@
 #include <array>
 #include <tuple>
 
+namespace sopack{
+
+namespace detail{
+    
 template <class T>
 concept is_integral = std::is_integral<T>::value;
 
@@ -26,6 +30,8 @@ concept has_serialize = requires (T data) {data._serialize();};
 template<class T>
 concept has_begin = requires (T data) {data.begin();};
 
+} // namespace
+
 template<size_t N>
 struct strfyH{
 public:
@@ -40,13 +46,13 @@ public:
 
     template<typename T>
     constexpr strfyH& operator<< (const T& val){
-        if constexpr (is_integral<T>){
+        if constexpr (detail::is_integral<T>){
             push(std::to_string(val));
         }
-        else if constexpr (is_string<T>){
+        else if constexpr (detail::is_string<T>){
             push("\"" + std::string(val) + "\"");
         }
-        else if constexpr (has_serialize<T>){
+        else if constexpr (detail::has_serialize<T>){
             push(val._serialize());
         }
         else{
@@ -167,15 +173,17 @@ constexpr const auto argCount(const std::string_view& str) noexcept{
     return count;
 }
 
+} // namespace
+
 
 #define _PACK_THESE_(TYPE,...)\
 private:\
-std::array<std::string_view, argCount(#__VA_ARGS__)> _memberNames{iniNames<argCount(#__VA_ARGS__)>(#__VA_ARGS__)};\
-mutable std::array<std::string, argCount(#__VA_ARGS__)> _memberValues;\
+std::array<std::string_view, sopack::argCount(#__VA_ARGS__)> _memberNames{sopack::iniNames<sopack::argCount(#__VA_ARGS__)>(#__VA_ARGS__)};\
+mutable std::array<std::string, sopack::argCount(#__VA_ARGS__)> _memberValues;\
 public:\
 decltype(auto) _serialize () const {\
-_memberValues = strArrVal<argCount(#__VA_ARGS__)>(__VA_ARGS__);\
-return serializeObject<argCount(#__VA_ARGS__)>(_memberNames, _memberValues);\
+_memberValues = sopack::strArrVal<sopack::argCount(#__VA_ARGS__)>(__VA_ARGS__);\
+return sopack::serializeObject<sopack::argCount(#__VA_ARGS__)>(_memberNames, _memberValues);\
  }\
 
 
