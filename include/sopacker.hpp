@@ -9,25 +9,31 @@ namespace sopack{
 
 namespace detail{
 
-template <class T>
+template<typename T>
 concept is_integral = std::is_integral<T>::value;
 
-template <class T>
+template<typename T>
+concept is_floating = std::is_floating_point<T>::value;
+
+template<typename T>
+concept is_numeric = is_integral<T> || is_floating<T>;
+
+template<typename T>
 concept is_char_array = std::is_same<T, const char*>::value;
 
-template <class T>
+template<typename T>
 concept is_char = std::is_same<T, const char>::value;
 
-template<class T>
+template<typename T>
 concept is_string_class = requires (T str) {str.substr();};
 
-template<class T>
+template<typename T>
 concept is_string = is_char_array<T> || is_char<T> || is_string_class<T>;
 
-template<class T>
+template<typename T>
 concept has_so_serialize = requires (T data) {data._so_serialize();};
 
-template<class T>
+template<typename T>
 concept has_begin = requires (T data) {data.begin();};
 
 } // namespace
@@ -46,7 +52,7 @@ public:
 
     template<typename T>
     constexpr packHelper& operator<< (const T& val){
-        if constexpr (detail::is_integral<T>){
+        if constexpr (detail::is_numeric<T>){
             push(std::to_string(val));
         }
         else if constexpr (detail::is_string<T>){
@@ -55,7 +61,7 @@ public:
         else if constexpr (detail::has_so_serialize<T>){
             push(val._so_serialize());
         }
-        
+
         return *this;
     }
 
