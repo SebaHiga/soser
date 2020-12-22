@@ -23,6 +23,9 @@ concept is_string = is_char_array<T> || is_char<T> || is_string_class<T>;
 template<class T>
 concept has_serialize = requires (T data) {data._serialize();};
 
+template<class T>
+concept has_begin = requires (T data) {data.begin();};
+
 template<size_t N>
 struct strfyH{
 public:
@@ -35,28 +38,28 @@ public:
     inline void openBraket(){vect.push_back("[");}
     inline void closeBraket(){vect.push_back("]");}
 
-    template<is_integral T>
-    strfyH& operator<< (const T& val){
-        push((std::to_string(val)));
-        return *this;
-    }
-
-    template<is_string T>
-    strfyH& operator<< (const T& val){
-        push(std::string(val));
-        return *this;
-    }
-
-    template<has_serialize T>
-    strfyH& operator<< (T& val){
-        push(val._serialize());
+    template<typename T>
+    constexpr strfyH& operator<< (const T& val){
+        if constexpr (is_integral<T>){
+            push(std::to_string(val));
+        }
+        else if constexpr (is_string<T>){
+            push("\"" + std::string(val) + "\"");
+        }
+        else if constexpr (has_serialize<T>){
+            push(val._serialize());
+        }
+        else{
+            std::cout << "cnat deduce wtf: " << typeid(val).name() << '\n';
+        }
         return *this;
     }
 
     std::string unpack(){
         std::stringstream ss;
 
-        if (vect.size() > 0){
+        if (N <= 0){
+            vect.pop_back(); 
             closeBraket();
             for(const auto& data : vect) ss << data;
         }
@@ -70,7 +73,12 @@ public:
     template<typename T>
     void push(const T& str){
         if (N > 0) {
-            arr[index] = str;
+            if (index < N){
+                arr[index] = str;
+            }
+            else{
+                std::cout << "cant push more objects\n";
+            }
         }
         else{
             vect.emplace_back(str);
@@ -78,15 +86,18 @@ public:
         index++;
     }
 
+    void pushSeparator(){
+        vect.emplace_back(", ");
+    }
+
     template<template<class...> class CNTR, typename... T> 
-    void containerHelper(CNTR<T...> container){
+    void containerHelper(const CNTR<T...>& container){
         strfyH<0> tmp(container.size());
-        const char *separator = "";
 
         if(!container.empty()){
             for(auto it = container.begin(); it != container.end(); it++){
-                tmp << separator << *it ;
-                separator = ", ";
+                tmp << *it ;
+                tmp.pushSeparator();
             }
         }
 
@@ -94,7 +105,7 @@ public:
     }
 
     template<typename T>
-    strfyH& operator<< (std::vector<T>& container){
+    strfyH& operator<< (const std::vector<T>& container){
         containerHelper(container);
         return *this;
     }
@@ -123,8 +134,7 @@ constexpr auto split(const std::string_view &str, const std::string_view &delim)
         if (!token.empty()) tokens[index] = token;
         index++;
         prev = pos + delim.length();
-    }
-    while (pos < str.length() && prev < str.length());
+    } while (pos < str.length() && prev < str.length());
     return tokens;
 }
 
@@ -136,15 +146,15 @@ constexpr auto iniNames(const std::string_view &names){
 template<int N, typename T, typename TT>
 auto serializeObject (T& names, TT& vals){
     std::stringstream ss;
-    ss << '[';
+    ss << '{';
 
     for(std::size_t i = 0; i < names.size()-1; i++){
-        ss << names[i] << '=' << vals[i] << ", ";
+        ss << '\"' << names[i] << '\"' << " : " << vals[i] << ", ";
     }
 
-    ss << names.back() << '=' << vals.back();
+    ss  << '\"' << names.back() << '\"' << " : " << vals.back();
 
-    ss << ']';
+    ss << '}';
 
     return ss.str();
 }
@@ -161,9 +171,9 @@ constexpr const auto argCount(const std::string_view& str) noexcept{
 #define _PACK_THESE_(TYPE,...)\
 private:\
 std::array<std::string_view, argCount(#__VA_ARGS__)> _memberNames{iniNames<argCount(#__VA_ARGS__)>(#__VA_ARGS__)};\
-std::array<std::string, argCount(#__VA_ARGS__)> _memberValues;\
+mutable std::array<std::string, argCount(#__VA_ARGS__)> _memberValues;\
 public:\
-auto _serialize () {\
+decltype(auto) _serialize () const {\
 _memberValues = strArrVal<argCount(#__VA_ARGS__)>(__VA_ARGS__);\
 return serializeObject<argCount(#__VA_ARGS__)>(_memberNames, _memberValues);\
  }\
