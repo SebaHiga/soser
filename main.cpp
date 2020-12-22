@@ -19,21 +19,21 @@ public:
             jobs.emplace_back("brain washer", 2);
             jobs.emplace_back("swimmer", 4);
         }
-public:
     std::string m_name = "none";
+public:
     std::string m_lastName;
     std::size_t m_age;
     std::vector<Job> jobs;
-    Job j;
+    Job working_as;
     std::vector<int> m_numbers{1, -2, 4};
 
-    _PACK_THESE_(Person, m_name, m_lastName, m_numbers, j, jobs);
+    _PACK_THESE_(Person, m_name, m_lastName, m_numbers, working_as, jobs);
 };
 
 int main() {
     Job p;
-    sopack::strfyH<1> strh;
-    sopack::strfyH<1> strh2;
+    sopack::packHelper<1> strh;
+    sopack::packHelper<1> strh2;
 
     // strh << p;
     strh << p;

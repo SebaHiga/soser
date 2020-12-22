@@ -8,7 +8,7 @@
 namespace sopack{
 
 namespace detail{
-    
+
 template <class T>
 concept is_integral = std::is_integral<T>::value;
 
@@ -33,10 +33,10 @@ concept has_begin = requires (T data) {data.begin();};
 } // namespace
 
 template<size_t N>
-struct strfyH{
+struct packHelper{
 public:
-    strfyH(){}
-    strfyH(size_t memSize){vect.reserve(memSize); openBraket();}
+    packHelper(){}
+    packHelper(size_t memSize){vect.reserve(memSize); openBraket();}
     std::array<std::string, N> arr;
     std::vector<std::string> vect;
     std::size_t index = 0;
@@ -45,7 +45,7 @@ public:
     inline void closeBraket(){vect.push_back("]");}
 
     template<typename T>
-    constexpr strfyH& operator<< (const T& val){
+    constexpr packHelper& operator<< (const T& val){
         if constexpr (detail::is_integral<T>){
             push(std::to_string(val));
         }
@@ -62,18 +62,18 @@ public:
     }
 
     std::string unpack(){
-        std::stringstream ss;
+        std::string ss;
 
         if (N <= 0){
             vect.pop_back(); 
             closeBraket();
-            for(const auto& data : vect) ss << data;
+            for(const auto& data : vect) ss.append(data);
         }
         else{
-            for(const auto& data : arr) ss << data;
+            for(const auto& data : arr) ss.append(data);
         }
 
-        return ss.str();
+        return ss;
     }
 
     template<typename T>
@@ -98,7 +98,7 @@ public:
 
     template<template<class...> class CNTR, typename... T> 
     void containerHelper(const CNTR<T...>& container){
-        strfyH<0> tmp(container.size());
+        packHelper<0> tmp(container.size()*2+2);
 
         if(!container.empty()){
             for(auto it = container.begin(); it != container.end(); it++){
@@ -111,7 +111,7 @@ public:
     }
 
     template<typename T>
-    strfyH& operator<< (const std::vector<T>& container){
+    packHelper& operator<< (const std::vector<T>& container){
         containerHelper(container);
         return *this;
     }
@@ -119,8 +119,8 @@ public:
 };
 
 template<size_t N, class... T>
-auto strArrVal(T& ...args){
-    strfyH<N> strHelper(sizeof...(T));
+auto toStrArr(T& ...args){
+    packHelper<N> strHelper(sizeof...(T));
 
     (strHelper << ... << args);
 
@@ -128,7 +128,7 @@ auto strArrVal(T& ...args){
 }
 
 template<size_t N>
-constexpr auto split(const std::string_view &str, const std::string_view &delim)
+constexpr auto splitString(const std::string_view &str, const std::string_view &delim)
 {
     std::array<std::string_view, N> tokens;
     size_t prev = 0, pos = 0, index = 0;
@@ -146,23 +146,23 @@ constexpr auto split(const std::string_view &str, const std::string_view &delim)
 
 template<size_t N>
 constexpr auto iniNames(const std::string_view &names){
-    return split<N>(names, ", ");
+    return splitString<N>(names, ", ");
 }
 
 template<int N, typename T, typename TT>
 auto serializeObject (T& names, TT& vals){
-    std::stringstream ss;
-    ss << '{';
+    std::string ss;
+    ss.append("{");
 
     for(std::size_t i = 0; i < names.size()-1; i++){
-        ss << '\"' << names[i] << '\"' << " : " << vals[i] << ", ";
+        ss.append("\"").append(names[i]).append("\"" ).append(" : ").append(vals[i]).append(", ");
     }
 
-    ss  << '\"' << names.back() << '\"' << " : " << vals.back();
+    ss.append("\"").append(names.back()).append("\"").append(" : ").append(vals.back());
 
-    ss << '}';
+    ss.append("}");
 
-    return ss.str();
+    return ss;
 }
 
 constexpr const auto argCount(const std::string_view& str) noexcept{
@@ -182,7 +182,7 @@ std::array<std::string_view, sopack::argCount(#__VA_ARGS__)> _memberNames{sopack
 mutable std::array<std::string, sopack::argCount(#__VA_ARGS__)> _memberValues;\
 public:\
 decltype(auto) _serialize () const {\
-_memberValues = sopack::strArrVal<sopack::argCount(#__VA_ARGS__)>(__VA_ARGS__);\
+_memberValues = sopack::toStrArr<sopack::argCount(#__VA_ARGS__)>(__VA_ARGS__);\
 return sopack::serializeObject<sopack::argCount(#__VA_ARGS__)>(_memberNames, _memberValues);\
  }\
 
