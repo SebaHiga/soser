@@ -153,7 +153,7 @@ constexpr auto iniNames(const std::string_view &names){
     return splitString<N>(names, ", ");
 }
 
-template<int N, typename T, typename TT>
+template<typename T, typename TT>
 auto serializeObject (T& names, TT& vals){
     std::string ss;
     ss.append("{");
@@ -187,7 +187,7 @@ mutable std::array<std::string, sopack::argCount(#__VA_ARGS__)> _so_memberValues
 public:\
 decltype(auto) _so_serialize () const {\
 _so_memberValues = sopack::toStrArr<sopack::argCount(#__VA_ARGS__)>(__VA_ARGS__);\
-return sopack::serializeObject<sopack::argCount(#__VA_ARGS__)>(_so_memberNames, _so_memberValues);\
+return sopack::serializeObject(_so_memberNames, _so_memberValues);\
  }\
 
 
