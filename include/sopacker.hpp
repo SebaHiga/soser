@@ -27,7 +27,7 @@ template<size_t N>
 struct strfyH{
 public:
     strfyH(){}
-    strfyH(size_t memSize){vect.reserve(memSize);}
+    strfyH(size_t memSize){vect.reserve(memSize); openBraket();}
     std::array<std::string, N> arr;
     std::vector<std::string> vect;
     std::size_t index = 0;
@@ -37,24 +37,18 @@ public:
 
     template<is_integral T>
     strfyH& operator<< (const T& val){
-        std::cout << "with N = " << N << '\n';
-        std::cout << "using integral " << val << '\n';
         push((std::to_string(val)));
         return *this;
     }
 
     template<is_string T>
     strfyH& operator<< (const T& val){
-        std::cout << "with N = " << N << '\n';
-        std::cout << "using string " << val << '\n';
         push(std::string(val));
         return *this;
     }
 
     template<has_serialize T>
     strfyH& operator<< (T& val){
-        std::cout << "with N = " << N << '\n';
-        std::cout << "using serialize\n";
         push(val._serialize());
         return *this;
     }
@@ -63,6 +57,7 @@ public:
         std::stringstream ss;
 
         if (vect.size() > 0){
+            closeBraket();
             for(const auto& data : vect) ss << data;
         }
         else{
@@ -78,7 +73,6 @@ public:
             arr[index] = str;
         }
         else{
-            std::cout << "using dinamic\n";
             vect.emplace_back(str);
         }
         index++;
@@ -87,7 +81,6 @@ public:
     template<template<class...> class CNTR, typename... T> 
     void containerHelper(CNTR<T...> container){
         strfyH<0> tmp(container.size());
-        tmp.openBraket();
         const char *separator = "";
 
         if(!container.empty()){
@@ -97,13 +90,11 @@ public:
             }
         }
 
-        tmp.closeBraket();
         push(tmp.unpack());
     }
 
     template<typename T>
     strfyH& operator<< (std::vector<T>& container){
-        std::cout << "using container helper\n";
         containerHelper(container);
         return *this;
     }
@@ -174,7 +165,6 @@ std::array<std::string, argCount(#__VA_ARGS__)> _memberValues;\
 public:\
 auto _serialize () {\
 _memberValues = strArrVal<argCount(#__VA_ARGS__)>(__VA_ARGS__);\
-std::cout << "retuning object values\n";\
 return serializeObject<argCount(#__VA_ARGS__)>(_memberNames, _memberValues);\
  }\
 
