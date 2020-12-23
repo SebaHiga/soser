@@ -1,40 +1,22 @@
 #include <iostream>
-#include <vector>
+#include <list>
 #include <string_view>
-#include <sstream>
 #include <array>
-#include <tuple>
 
 namespace sopack{
 
 namespace detail{
 
-template<typename T>
-concept is_integral = std::is_integral<T>::value;
-
-template<typename T>
-concept is_floating = std::is_floating_point<T>::value;
-
-template<typename T>
-concept is_numeric = is_integral<T> || is_floating<T>;
-
-template<typename T>
-concept is_char_array = std::is_same<T, const char*>::value;
-
-template<typename T>
-concept is_char = std::is_same<T, const char>::value;
-
-template<typename T>
-concept is_string_class = requires (T str) {str.substr();};
-
-template<typename T>
-concept is_string = is_char_array<T> || is_char<T> || is_string_class<T>;
-
-template<typename T>
-concept has_so_serialize = requires (T data) {data._so_serialize();};
-
-template<typename T>
-concept has_begin = requires (T data) {data.begin();};
+template<typename T> concept is_integral = std::is_integral<T>::value;
+template<typename T> concept is_floating = std::is_floating_point<T>::value;
+template<typename T> concept is_numeric = is_integral<T> || is_floating<T>;
+template<typename T> concept is_char_array = std::is_same<T, const char*>::value;
+template<typename T> concept is_char = std::is_same<T, const char>::value;
+template<typename T> concept is_string_class = requires (T str) {str.substr();};
+template<typename T> concept is_string = is_char_array<T> || is_char<T> || is_string_class<T>;
+template<typename T> concept has_so_serialize = requires (T data) {data._so_serialize();};
+template<typename T> concept has_begin = requires (T data) {data.begin();};
+template<typename T> concept is_container = has_begin<T> && !is_string<T>;
 
 } // namespace
 
@@ -42,13 +24,13 @@ template<size_t N>
 struct packHelper{
 public:
     packHelper(){}
-    packHelper(size_t memSize){vect.reserve(memSize); openBraket();}
+    packHelper([[maybe_unused]] size_t memSize){openBracket();}
     std::array<std::string, N> arr;
-    std::vector<std::string> vect;
+    std::list<std::string> list;
     std::size_t index = 0;
 
-    inline void openBraket(){vect.push_back("[");}
-    inline void closeBraket(){vect.push_back("]");}
+    inline void openBracket(){list.push_back("[");}
+    inline void closeBracket(){list.push_back("]");}
 
     template<typename T>
     constexpr packHelper& operator<< (const T& val){
@@ -65,13 +47,29 @@ public:
         return *this;
     }
 
+    template<typename CNTR>
+    packHelper& operator<< (const CNTR& container) requires detail::is_container<CNTR>
+    {
+        packHelper<0> tmp(1);
+
+        if(!container.empty()){
+            for(auto it = container.begin(); it != container.end(); it++){
+                tmp << *it ;
+                tmp.pushSeparator();
+            }
+        }
+
+        push(tmp.unpack());
+        return *this;
+    }
+
     std::string unpack(){
         std::string ss;
 
         if (N <= 0){
-            vect.pop_back(); 
-            closeBraket();
-            for(const auto& data : vect) ss.append(data);
+            list.pop_back(); 
+            closeBracket();
+            for(const auto& data : list) ss.append(data);
         }
         else{
             for(const auto& data : arr) ss.append(data);
@@ -91,35 +89,14 @@ public:
             }
         }
         else{
-            vect.emplace_back(str);
+            list.emplace_back(str);
         }
         index++;
     }
 
     void pushSeparator(){
-        vect.emplace_back(", ");
+        list.emplace_back(", ");
     }
-
-    template<template<class...> class CNTR, typename... T> 
-    void containerHelper(const CNTR<T...>& container){
-        packHelper<0> tmp(container.size()*2+2);
-
-        if(!container.empty()){
-            for(auto it = container.begin(); it != container.end(); it++){
-                tmp << *it ;
-                tmp.pushSeparator();
-            }
-        }
-
-        push(tmp.unpack());
-    }
-
-    template<typename T>
-    packHelper& operator<< (const std::vector<T>& container){
-        containerHelper(container);
-        return *this;
-    }
-
 };
 
 template<size_t N, class... T>
@@ -180,6 +157,7 @@ constexpr const auto argCount(const std::string_view& str) noexcept{
 } // namespace
 
 
+#ifdef SO_USE_STDCOUT
 #define _PACK_THESE_(TYPE,...)\
 private:\
 std::array<std::string_view, sopack::argCount(#__VA_ARGS__)> _so_memberNames{sopack::iniNames<sopack::argCount(#__VA_ARGS__)>(#__VA_ARGS__)};\
@@ -189,5 +167,20 @@ decltype(auto) _so_serialize () const {\
 _so_memberValues = sopack::toStrArr<sopack::argCount(#__VA_ARGS__)>(__VA_ARGS__);\
 return sopack::serializeObject(_so_memberNames, _so_memberValues);\
  }\
+friend std::ostream& operator<< (std::ostream& os, const TYPE& t)\
+{\
+    os << (sopack::packHelper<1>() << t).unpack();\
+    return os;\
+}
+#else 
 
-
+#define _PACK_THESE_(TYPE,...)\
+private:\
+std::array<std::string_view, sopack::argCount(#__VA_ARGS__)> _so_memberNames{sopack::iniNames<sopack::argCount(#__VA_ARGS__)>(#__VA_ARGS__)};\
+mutable std::array<std::string, sopack::argCount(#__VA_ARGS__)> _so_memberValues;\
+public:\
+decltype(auto) _so_serialize () const {\
+_so_memberValues = sopack::toStrArr<sopack::argCount(#__VA_ARGS__)>(__VA_ARGS__);\
+return sopack::serializeObject(_so_memberNames, _so_memberValues);\
+ }
+#endif

@@ -1,5 +1,10 @@
 #include <iostream>
+#include <vector>
+
+#define SO_USE_STDCOUT
+
 #include "sopacker.hpp"
+#include <list>
 
 struct Job{
     Job () = default;
@@ -25,24 +30,19 @@ public:
     std::size_t m_age;
     std::vector<Job> jobs;
     Job working_as;
-    std::vector<int> m_numbers{1, -2, 4};
+    std::list<int> m_numbers{1, -2, 4};
 
     _PACK_THESE_(Person, m_name, m_lastName, m_numbers, working_as, jobs);
 };
 
 int main() {
     Job p;
-    sopack::packHelper<1> strh;
-    sopack::packHelper<1> strh2;
 
-    // strh << p;
-    strh << p;
-    std::cout << strh.unpack() << '\n';
-    
+    std::cout << p << '\n';    
+
     Person per("John", "Doe", 39);
 
-    strh2 << per;
-    std::cout << strh2.unpack() << '\n';
+    std::cout << per << '\n';
 
     return 0;
 }
