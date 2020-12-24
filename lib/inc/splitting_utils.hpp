@@ -12,48 +12,50 @@ template<size_t N>
 auto splitVals(const std::string& str){
     std::array<std::string, N> arr;
 
-    auto tmp = str.substr(1);
     size_t index = 0;
-    size_t prev = 0;
-    size_t token = prev;
+    size_t peaker = 0;
+    size_t now = 0;
+    bool parsed = false;
 
-    while(index < N){
-        prev = tmp.find(": ", prev);
-        if (prev != std::string::npos) {
-            prev += 2;
-
-            token = tmp.find(',', prev);
-            auto bracket = tmp.find('[', prev);
-            auto curly_bracket = tmp.find('{', prev);
-
-            if (token == std::string::npos) { token = tmp.length() - 1; }
-            if (bracket < token or curly_bracket < token) {
-                prev = bracket;
-                token = 0;
-                
-                // find closing bracket
+    while (now < str.length()) {
+        // Start of new item
+        if (str[now] == ':' and str[now + 1] == ' '){
+            parsed = true;
+            // Start of object
+            if (str[now + 2] == '[' or str[now + 2] == '{'){
+                now += 2;
+                const char opener = str[now] == '[' ? '[' : '{';
+                const char closer = str[now] == '[' ? ']' : '}';
                 size_t count = 0;
-                char opening = '[', closing = ']';
 
-                if (curly_bracket < bracket){
-                    opening = '{'; closing = '}';
-                    prev = curly_bracket;
-                }
-
-                for (const auto& c : tmp){
-                    if (c == opening) count++;
-                    if (c == closing){
+                peaker = now;
+                for (; peaker < str.length(); peaker++){
+                    if (str[peaker] == opener) count++;
+                    if (str[peaker] == closer) {
                         count--;
-                        if (!count) break;
+                        if (count == 0) break;
                     }
-                    token++;
                 }
-                token++;
+                peaker++;
             }
-            arr[index] = tmp.substr(prev, token - prev);
+            // Is normal item or string
+            else {
+                now += 2;
+                peaker = now;
+
+                for (; peaker < str.length(); peaker++) if (str[peaker] == ',') break;
+            }
         }
 
-        index++;
+        if (parsed) {
+            if (peaker >= str.length()) peaker--;
+            parsed = false;
+            arr[index] = str.substr(now, peaker - now);
+            now = peaker;
+            index++;
+        }
+
+        now++;
     }
 
     return arr;
