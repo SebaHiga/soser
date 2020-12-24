@@ -186,7 +186,7 @@ auto deSerializeObject(const std::string &content, T& ...args){
 } // namespace
 
 
-#ifdef SO_USE_STDCOUT
+#ifdef SO_USE_STD_OPERATORS
 #define _PACK_THESE_(TYPE,...)\
 private:\
 std::array<std::string_view, sopack::argCount(#__VA_ARGS__)> _so_memberNames{sopack::iniNames<sopack::argCount(#__VA_ARGS__)>(#__VA_ARGS__)};\
@@ -199,6 +199,10 @@ return sopack::serializeObject(_so_memberNames, _so_memberValues);\
  void _so_deserialize (const std::string& data){\
      sopack::deSerializeObject<sopack::argCount(#__VA_ARGS__)>(data, __VA_ARGS__);\
  }\
+friend std::string operator>> (const std::string& data, TYPE& t){\
+    t._so_deserialize(data);\
+    return data;\
+}\
 template<sopack::detail::not_so_helper T>\
 friend T& operator<< (T& os, const TYPE& t)\
 { os << (sopack::packHelper<1>() << t).unpack(); return os; }

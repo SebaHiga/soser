@@ -1,6 +1,6 @@
 #include "catch.hpp"
 
-#define SO_USE_STDCOUT
+#define SO_USE_STD_OPERATORS
 #include "sopack.hpp"
 #include <string>
 #include <sstream>

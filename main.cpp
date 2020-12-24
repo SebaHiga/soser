@@ -1,7 +1,7 @@
 #include <iostream>
 #include <vector>
 
-#define SO_USE_STDCOUT
+#define SO_USE_STD_OPERATORS
 
 #include "sopack.hpp"
 #include <list>
@@ -42,7 +42,7 @@ int main() {
 
     std::string str("{\"years\": 42, \"position\": \"modified\", \"vec\": [4, 3, 2, 1]}");
 
-    p._so_deserialize(str);
+    str >> p;
 
     std::cout << p << '\n';    
 
@@ -52,7 +52,7 @@ int main() {
 
     std::string str2("{\"m_name\": \"Sebastian\", \"m_lastName\": \"Modified\", \"jobs\": [{\"years\": 42, \"position\": \"modified\", \"vec\": [4, 4, 4, 4]}, {\"years\": 42, \"position\": \"modified\", \"vec\": [4, 4, 4, 4]}]}");
 
-    per._so_deserialize(str2);
+    str2 >> per;
 
     std::cout << per;
 
