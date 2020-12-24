@@ -11,8 +11,9 @@ struct Job{
     Job(std::string str, int y) : position(str), years(y) {}
     std::string position = "none";
     int years = 0;
+    std::vector<int> vec{1, 2, 3, 4};
 
-   _PACK_THESE_(Job, years, position);
+   _PACK_THESE_(Job, years, position, vec);
 };
 
 class Person{
@@ -21,7 +22,6 @@ public:
         m_name(name),
         m_lastName(lastName),
         m_age(age){
-            jobs.emplace_back("brain washer", 2);
             jobs.emplace_back("swimmer", 4);
         }
     std::string m_name = "none";
@@ -32,7 +32,7 @@ public:
     Job working_as;
     std::list<int> m_numbers{1, -2, 4};
 
-    _PACK_THESE_(Person, m_name, m_lastName, m_numbers, working_as, jobs);
+    _PACK_THESE_(Person, m_name, m_lastName, jobs);
 };
 
 int main() {
@@ -40,7 +40,7 @@ int main() {
 
     std::cout << p << '\n';    
 
-    std::string str("{\"years\": 10, \"position\": \"not a drug dealer\"}");
+    std::string str("{\"years\": 42, \"position\": \"modified\", \"vec\": [4, 3, 2, 1]}");
 
     p._so_deserialize(str);
 
@@ -49,6 +49,12 @@ int main() {
     Person per("John", "Doe", 39);
 
     std::cout << per << '\n';
+
+    std::string str2("{\"m_name\": \"Sebastian\", \"m_lastName\": \"Modified\", \"jobs\": [{\"years\": 42, \"position\": \"modified\", \"vec\": [4, 4, 4, 4]}, {\"years\": 42, \"position\": \"modified\", \"vec\": [4, 4, 4, 4]}]}");
+
+    per._so_deserialize(str2);
+
+    std::cout << per;
 
     return 0;
 }

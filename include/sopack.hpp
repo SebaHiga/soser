@@ -6,6 +6,8 @@
 
 namespace sopack{
 
+auto getContainerList(const std::string& data);
+
 namespace detail{
 
 template<typename T> concept is_integral = std::is_integral<T>::value;
@@ -15,7 +17,7 @@ template<typename T> concept is_char_array = std::is_same<T, const char*>::value
 template<typename T> concept is_char = std::is_same<T, const char>::value;
 template<typename T> concept is_string_class = requires (T str) {str.substr();};
 template<typename T> concept is_string = is_char_array<T> || is_char<T> || is_string_class<T>;
-template<typename T> concept has_so_serialize = requires (T data) {data._so_serialize();};
+template<typename T> concept has_sop_serialize = requires (T data) {data._so_serialize();};
 template<typename T> concept has_begin = requires (T data) {data.begin();};
 template<typename T> concept is_container = has_begin<T> && !is_string<T>;
 template<typename T> concept is_so_helper = requires (T data) {data.openBracket();};
@@ -44,7 +46,7 @@ public:
         else if constexpr (detail::is_string<T>){
             push("\"" + std::string(val) + "\"");
         }
-        else if constexpr (detail::has_so_serialize<T>){
+        else if constexpr (detail::has_sop_serialize<T>){
             push(val._so_serialize());
         }
 
@@ -53,24 +55,28 @@ public:
 
     template<typename T>
     constexpr packHelper& operator>> (T& val){
-        if constexpr (detail::is_integral<T>){
-            val = std::stoi(std::string(arr[index]));
-        }
-        else if constexpr (detail::is_floating<T>){
-            val = std::stof(std::string(arr[index]));
-        }
-        else if constexpr (detail::is_string<T>){
-            val =arr[index].substr(1, arr[index].length()-2);
-        }
-        else if constexpr (detail::has_so_serialize<T>){
-            val._so_deserialize(arr[index]);
-        }
+        insertValue(val, pop());
 
         index++;
 
         return *this;
     }
 
+    template<typename T>
+    constexpr void insertValue (T& val, std::string data){
+        if constexpr (detail::is_integral<T>){
+            val = std::stoi(data);
+        }
+        else if constexpr (detail::is_floating<T>){
+            val = std::stof(data);
+        }
+        else if constexpr (detail::is_string<T>){
+            val = data.substr(1, arr[index].length()-2);
+        }
+        else if constexpr (detail::has_sop_serialize<T>){
+            val._so_deserialize(data);
+        }
+    }
 
     template<typename CNTR>
     packHelper& operator<< (const CNTR& container) requires detail::is_container<CNTR>
@@ -85,6 +91,25 @@ public:
         }
 
         push(tmp.unpack());
+        return *this;
+    }
+
+    template<typename T>
+    packHelper& operator>> (std::vector<T>& container)
+    {
+        container.clear();
+        const auto& data = arr[index];
+        auto dataList = getContainerList(data);
+
+        for(const auto& d : dataList){
+            T tmp;
+
+            insertValue(tmp, d);
+
+            container.push_back(tmp);
+        }
+
+        index++;
         return *this;
     }
 
@@ -119,6 +144,25 @@ public:
         index++;
     }
 
+    // template<typename T>
+    std::string pop(){
+        if (N > 0) {
+            if (index < N){
+                return arr[index];
+            }
+            else{
+                std::cout << "cant push more objects\n";
+            }
+        }
+        else{
+            auto tmp = list.front();
+            list.pop_front();
+            return tmp;
+        }
+        index++;
+        return "";
+    }
+
     void pushSeparator(){
         list.emplace_back(", ");
     }
@@ -133,6 +177,48 @@ auto toStrArr(T& ...args){
     return std::move(strHelper.arr);
 }
 
+auto getContainerList(const std::string& data){
+    size_t prev = 0;
+    bool isObjectContainer = data[1] == '{';
+    int offset = data[prev + 1] == '\"' ? 1 : 0;
+    std::list<std::string> ret;
+
+    while (prev < data.length()){
+        prev++;
+        if (isObjectContainer){
+            size_t count = 0;
+
+            // go to the first bracket
+            for(const auto& c : data.substr(prev)) if (c != '{') { prev++; } else {break;}
+            prev++;
+            auto token = prev;
+
+            for(const auto& c : data.substr(prev)){
+                if (c == '{') { count++; }
+                else if (c == '}'){
+                    if (count == 0)  break;
+                    count--;
+                }
+                token++;
+            }
+
+            if (token >= data.length() - 1){ token = data.length() - 1; }
+            ret.push_back(data.substr(prev, token - prev));
+            prev += token - prev + 2;
+            if (prev >= data.length() - 1) break;
+        }
+        else{
+            auto token = data.find(',', prev);
+            if (token == std::string::npos) { token = data.length() - 1; }
+            
+            ret.push_back(data.substr(prev + offset, token - prev - 2 * offset)); 
+            
+            prev += token - prev + 1;
+        }
+    }
+
+    return ret;
+}
 
 template<size_t N>
 auto splitVals(const std::string& str){
