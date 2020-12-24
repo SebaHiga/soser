@@ -27,13 +27,14 @@ template<size_t N>
 struct packHelper{
 public:
     packHelper(){}
-    packHelper([[maybe_unused]] size_t memSize){openBracket();}
+    packHelper([[maybe_unused]] size_t memSize){ openBracket(); }
+    packHelper([[maybe_unused]] std::array<std::string, N> content){ arr = content; }
     std::array<std::string, N> arr;
     std::list<std::string> list;
     std::size_t index = 0;
 
-    inline void openBracket(){list.push_back("[");}
-    inline void closeBracket(){list.push_back("]");}
+    inline void openBracket() { list.push_back("["); }
+    inline void closeBracket() { list.push_back("]"); }
 
     template<typename T>
     constexpr packHelper& operator<< (const T& val){
@@ -49,6 +50,27 @@ public:
 
         return *this;
     }
+
+    template<typename T>
+    constexpr packHelper& operator>> (T& val){
+        if constexpr (detail::is_integral<T>){
+            val = std::stoi(std::string(arr[index]));
+        }
+        else if constexpr (detail::is_floating<T>){
+            val = std::stof(std::string(arr[index]));
+        }
+        else if constexpr (detail::is_string<T>){
+            val =arr[index].substr(1, arr[index].length()-2);
+        }
+        else if constexpr (detail::has_so_serialize<T>){
+            val._so_deserialize(arr[index]);
+        }
+
+        index++;
+
+        return *this;
+    }
+
 
     template<typename CNTR>
     packHelper& operator<< (const CNTR& container) requires detail::is_container<CNTR>
@@ -111,6 +133,82 @@ auto toStrArr(T& ...args){
     return std::move(strHelper.arr);
 }
 
+
+template<size_t N>
+auto splitVals(const std::string& str){
+    std::array<std::string, N> arr;
+
+    auto tmp = str.substr(1);
+    size_t index = 0;
+    size_t prev = 0;
+    size_t token = prev;
+
+    while(index < N){
+        prev = tmp.find(": ", prev);
+        if (prev != std::string::npos) {
+            prev += 2;
+
+            token = tmp.find(',', prev);
+            auto bracket = tmp.find('[', prev);
+            auto curly_bracket = tmp.find('{', prev);
+
+            if (token == std::string::npos) { token = tmp.length() - 1; }
+            if (bracket < token or curly_bracket < token) {
+                prev = bracket;
+                token = 0;
+                
+                // find closing bracket
+                size_t count = 0;
+                char opening = '[', closing = ']';
+
+                if (curly_bracket < bracket){
+                    opening = '{'; closing = '}';
+                    prev = curly_bracket;
+                }
+
+                for (const auto& c : tmp){
+                    if (c == opening) count++;
+                    if (c == closing){
+                        count--;
+                        if (!count) break;
+                    }
+                    token++;
+                }
+                token++;
+            }
+            arr[index] = tmp.substr(prev, token - prev);
+        }
+
+        index++;
+    }
+
+    return arr;
+}
+
+template<size_t N, typename... T>
+auto deSerializeObject(const std::string &content, T& ...args){
+    auto arr = splitVals<N>(content);
+    packHelper<N> strHelper(arr);
+
+    (strHelper >> ... >> args);
+}
+
+template<typename T, typename TT>
+auto serializeObject (T& names, TT& vals){
+    std::string ss;
+    ss.append("{");
+
+    for(std::size_t i = 0; i < names.size()-1; i++){
+        ss.append("\"").append(names[i]).append("\"" ).append(": ").append(vals[i]).append(", ");
+    }
+
+    ss.append("\"").append(names.back()).append("\"").append(": ").append(vals.back());
+
+    ss.append("}");
+
+    return ss;
+}
+
 template<size_t N>
 constexpr auto splitString(const std::string_view &str, const std::string_view &delim)
 {
@@ -133,22 +231,6 @@ constexpr auto iniNames(const std::string_view &names){
     return splitString<N>(names, ", ");
 }
 
-template<typename T, typename TT>
-auto serializeObject (T& names, TT& vals){
-    std::string ss;
-    ss.append("{");
-
-    for(std::size_t i = 0; i < names.size()-1; i++){
-        ss.append("\"").append(names[i]).append("\"" ).append(": ").append(vals[i]).append(", ");
-    }
-
-    ss.append("\"").append(names.back()).append("\"").append(": ").append(vals.back());
-
-    ss.append("}");
-
-    return ss;
-}
-
 constexpr const auto argCount(const std::string_view& str) noexcept{
     size_t count = 0;
 
@@ -169,6 +251,9 @@ public:\
 decltype(auto) _so_serialize () const {\
 _so_memberValues = sopack::toStrArr<sopack::argCount(#__VA_ARGS__)>(__VA_ARGS__);\
 return sopack::serializeObject(_so_memberNames, _so_memberValues);\
+ }\
+ void _so_deserialize (const std::string& data){\
+     sopack::deSerializeObject<sopack::argCount(#__VA_ARGS__)>(data, __VA_ARGS__);\
  }\
 template<sopack::detail::not_so_helper T>\
 friend T& operator<< (T& os, const TYPE& t)\

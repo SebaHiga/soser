@@ -12,7 +12,7 @@ struct Job{
     std::string position = "none";
     int years = 0;
 
-   _PACK_THESE_(Job, position, years);
+   _PACK_THESE_(Job, years, position);
 };
 
 class Person{
@@ -37,6 +37,12 @@ public:
 
 int main() {
     Job p;
+
+    std::cout << p << '\n';    
+
+    std::string str("{\"years\": 10, \"position\": \"not a drug dealer\"}");
+
+    p._so_deserialize(str);
 
     std::cout << p << '\n';    
 
