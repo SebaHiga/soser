@@ -36,3 +36,25 @@ TEST_CASE("Basic structure works", "[struct]")
         REQUIRE(getString(strc) == "{\"i\": 42, \"f\": 10.000000, \"str\": \"world\"}");
     }
 }
+
+struct A{
+    int i = 42;
+    _PACK_THESE_(A, i);
+};
+
+struct B{
+    int j = 24;
+    A a;
+    _PACK_THESE_(B, j, a);
+};
+
+TEST_CASE("Composition", "[struct-struct]")
+{
+    B b;
+
+    REQUIRE(getString(b) == "{\"j\": 24, \"a\": {\"i\": 42}}");
+
+    SECTION("It's posible to extract serialization from object member") {
+        REQUIRE(getString(b.a) == "{\"i\": 42}");
+    }
+}
