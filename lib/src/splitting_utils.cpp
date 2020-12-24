@@ -3,7 +3,7 @@
 
 namespace sopack {
 
-auto getContainerList(const std::string& data){
+std::list<std::string> getContainerList(const std::string& data){
     size_t prev = 0;
     bool isObjectContainer = data[1] == '{';
     int offset = data[prev + 1] == '\"' ? 1 : 0;

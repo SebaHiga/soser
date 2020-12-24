@@ -6,7 +6,7 @@
 
 namespace sopack {
 
-auto getContainerList(const std::string& data);
+std::list<std::string> getContainerList(const std::string& data);
 
 template<size_t N>
 auto splitVals(const std::string& str){

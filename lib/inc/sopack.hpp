@@ -143,7 +143,6 @@ public:
         index++;
     }
 
-    // template<typename T>
     std::string pop(){
         if (N > 0) {
             if (index < N){

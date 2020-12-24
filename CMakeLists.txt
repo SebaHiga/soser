@@ -15,6 +15,7 @@ conan_basic_setup()
 #Executables and tests
 add_executable(sop main.cpp)
 
+enable_testing()
 add_subdirectory(test)
 
 #Main target settings
