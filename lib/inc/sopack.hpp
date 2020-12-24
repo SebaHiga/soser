@@ -3,6 +3,7 @@
 #include <string_view>
 #include <array>
 #include <sstream>
+#include <stdexcept>
 #include "splitting_utils.hpp"
 
 namespace sopack{
@@ -48,6 +49,14 @@ public:
         else if constexpr (detail::has_sop_serialize<T>){
             push(val._so_serialize());
         }
+        else{
+            std::string str("Not posible to serialize data value type: ");
+
+            str.append(typeid(T).name());
+
+            throw std::logic_error(str);
+        }
+
 
         return *this;
     }
@@ -74,6 +83,13 @@ public:
         }
         else if constexpr (detail::has_sop_serialize<T>){
             val._so_deserialize(data);
+        }
+        else{
+            std::string str("Not posible to deserialize data value type: ");
+
+            str.append(typeid(T).name());
+
+            throw std::logic_error(str);
         }
     }
 
@@ -134,7 +150,7 @@ public:
                 arr[index] = str;
             }
             else{
-                std::cout << "cant push more objects\n";
+                throw std::out_of_range("Cannot insert more object to static array");
             }
         }
         else{
@@ -145,17 +161,22 @@ public:
 
     std::string pop(){
         if (N > 0) {
-            if (index < N){
+            if (index < N) {
                 return arr[index];
             }
             else{
-                std::cout << "cant push more objects\n";
+                throw std::out_of_range("No items left from the static array");
             }
         }
         else{
-            auto tmp = list.front();
-            list.pop_front();
-            return tmp;
+            if (list.size() > 0){
+                auto tmp = list.front();
+                list.pop_front();
+                return tmp;
+            }
+            else{
+                throw std::out_of_range("No items left from the dynamic array");
+            }
         }
         index++;
         return "";
