@@ -3,7 +3,7 @@
 
 #define SO_USE_STDCOUT
 
-#include "sopacker.hpp"
+#include "sopack.hpp"
 #include <list>
 
 struct Job{

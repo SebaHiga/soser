@@ -2,6 +2,7 @@
 #include <list>
 #include <string_view>
 #include <array>
+#include <sstream>
 
 namespace sopack{
 
@@ -17,6 +18,8 @@ template<typename T> concept is_string = is_char_array<T> || is_char<T> || is_st
 template<typename T> concept has_so_serialize = requires (T data) {data._so_serialize();};
 template<typename T> concept has_begin = requires (T data) {data.begin();};
 template<typename T> concept is_container = has_begin<T> && !is_string<T>;
+template<typename T> concept is_so_helper = requires (T data) {data.openBracket();};
+template<typename T> concept not_so_helper = !is_so_helper<T>;
 
 } // namespace
 
@@ -136,10 +139,10 @@ auto serializeObject (T& names, TT& vals){
     ss.append("{");
 
     for(std::size_t i = 0; i < names.size()-1; i++){
-        ss.append("\"").append(names[i]).append("\"" ).append(" : ").append(vals[i]).append(", ");
+        ss.append("\"").append(names[i]).append("\"" ).append(": ").append(vals[i]).append(", ");
     }
 
-    ss.append("\"").append(names.back()).append("\"").append(" : ").append(vals.back());
+    ss.append("\"").append(names.back()).append("\"").append(": ").append(vals.back());
 
     ss.append("}");
 
@@ -167,11 +170,9 @@ decltype(auto) _so_serialize () const {\
 _so_memberValues = sopack::toStrArr<sopack::argCount(#__VA_ARGS__)>(__VA_ARGS__);\
 return sopack::serializeObject(_so_memberNames, _so_memberValues);\
  }\
-friend std::ostream& operator<< (std::ostream& os, const TYPE& t)\
-{\
-    os << (sopack::packHelper<1>() << t).unpack();\
-    return os;\
-}
+template<sopack::detail::not_so_helper T>\
+friend T& operator<< (T& os, const TYPE& t)\
+{ os << (sopack::packHelper<1>() << t).unpack(); return os; }
 #else 
 
 #define _PACK_THESE_(TYPE,...)\
