@@ -26,11 +26,11 @@ template<typename T> concept not_so_helper = !is_so_helper<T>;
 } // namespace
 
 template<size_t N>
-struct packHelper{
+struct SOPack{
 public:
-    packHelper(){}
-    packHelper([[maybe_unused]] size_t memSize){ openBracket(); }
-    packHelper([[maybe_unused]] std::array<std::string, N> content){ arr = content; }
+    SOPack(){}
+    SOPack([[maybe_unused]] size_t memSize){ openBracket(); }
+    SOPack([[maybe_unused]] std::array<std::string, N> content){ arr = content; }
     std::array<std::string, N> arr;
     std::list<std::string> list;
     std::size_t index = 0;
@@ -39,7 +39,7 @@ public:
     inline void closeBracket() { list.push_back("]"); }
 
     template<typename T>
-    constexpr packHelper& operator<< (const T& val){
+    constexpr SOPack& operator<< (const T& val){
         if constexpr (detail::is_numeric<T>){
             push(std::to_string(val));
         }
@@ -62,7 +62,7 @@ public:
     }
 
     template<typename T>
-    constexpr packHelper& operator>> (T& val){
+    constexpr SOPack& operator>> (T& val){
         insertValue(val, pop());
 
         index++;
@@ -94,9 +94,9 @@ public:
     }
 
     template<typename CNTR>
-    packHelper& operator<< (const CNTR& container) requires detail::is_container<CNTR>
+    SOPack& operator<< (const CNTR& container) requires detail::is_container<CNTR>
     {
-        packHelper<0> tmp(1);
+        SOPack<0> tmp(1);
 
         if(!container.empty()){
             for(auto it = container.begin(); it != container.end(); it++){
@@ -110,7 +110,7 @@ public:
     }
 
     template<typename T>
-    packHelper& operator>> (std::vector<T>& container)
+    SOPack& operator>> (std::vector<T>& container)
     {
         container.clear();
         const auto& data = arr[index];
@@ -187,7 +187,7 @@ public:
 
 template<size_t N, class... T>
 auto toStrArr(T& ...args){
-    packHelper<N> strHelper(sizeof...(T));
+    SOPack<N> strHelper(sizeof...(T));
 
     (strHelper << ... << args);
 
@@ -197,7 +197,7 @@ auto toStrArr(T& ...args){
 template<size_t N, typename... T>
 auto deSerializeObject(const std::string &content, T& ...args){
     auto arr = splitVals<N>(content);
-    packHelper<N> strHelper(arr);
+    SOPack<N> strHelper(arr);
 
     (strHelper >> ... >> args);
 }
@@ -224,7 +224,7 @@ friend std::string operator>> (const std::string& data, TYPE& t){\
 }\
 template<sopack::detail::not_so_helper T>\
 friend T& operator<< (T& os, const TYPE& t)\
-{ os << (sopack::packHelper<1>() << t).unpack(); return os; }
+{ os << (sopack::SOPack<1>() << t).unpack(); return os; }
 #else 
 
 #define _PACK_THESE_(TYPE,...)\
