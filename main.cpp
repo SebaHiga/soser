@@ -50,7 +50,7 @@ int main() {
 
     std::cout << per << '\n';
 
-    std::string str2("{\"m_name\": \"Sebastian\", \"m_lastName\": \"Modified\", \"jobs\": [{\"years\": 42, \"position\": \"modified\", \"vec\": [4, 4, 4, 4]}, {\"years\": 42, \"position\": \"modified\", \"vec\": [4, 4, 4, 4]}]}");
+    std::string str2("{\"m_name\": \"John\", \"m_lastName\": \"Doe\", \"jobs\": [{\"years\": 4, \"position\": \"swimmer\", \"vec\": [1, 2, 3, 4]}, {\"years\": 4, \"position\": \"swimmer\", \"vec\": [1, 2, 3, 4]}]}");
 
     str2 >> per;
 

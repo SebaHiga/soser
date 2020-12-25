@@ -4,43 +4,49 @@
 namespace sopack {
 
 std::list<std::string> getContainerList(const std::string& data){
-    size_t prev = 0;
     bool isObjectContainer = data[1] == '{';
-    int offset = data[prev + 1] == '\"' ? 1 : 0;
     std::list<std::string> ret;
 
-    while (prev < data.length()){
-        prev++;
-        if (isObjectContainer){
-            size_t count = 0;
+    size_t now = 0;
+    auto peek = now;
+    bool found = false;
 
-            // go to the first bracket
-            for(const auto& c : data.substr(prev)) if (c != '{') { prev++; } else {break;}
-            prev++;
-            auto token = prev;
+    auto isValid = [] (const char c) {
+        return c != '[' and c != ']' and c != ',' and c != ' ';
+    };
 
-            for(const auto& c : data.substr(prev)){
-                if (c == '{') { count++; }
-                else if (c == '}'){
-                    if (count == 0)  break;
-                    count--;
+    while (now < data.length()){
+        if (isObjectContainer) {
+            if (data[now] == '{'){
+                found = true;
+                size_t count = 0;
+                for(peek = now; peek < data.length(); peek++){
+                    if (data[peek] == '{') count++;
+                    if (data[peek] == '}'){
+                        count--;
+                        if (count == 0) break;
+                    }
                 }
-                token++;
+                peek++;
             }
-
-            if (token >= data.length() - 1){ token = data.length() - 1; }
-            ret.push_back(data.substr(prev, token - prev));
-            prev += token - prev + 2;
-            if (prev >= data.length() - 1) break;
         }
         else{
-            auto token = data.find(',', prev);
-            if (token == std::string::npos) { token = data.length() - 1; }
-            
-            ret.push_back(data.substr(prev + offset, token - prev - 2 * offset)); 
-            
-            prev += token - prev + 1;
+            if (isValid(data[now])){
+                found = true;
+                for(peek = now; peek < data.length(); peek++){
+                    if (data[peek] == ',') break;   
+                }
+            }
+        }    
+    
+        if (found) {
+            found = false;
+            if (peek >= data.length()) peek--;
+            ret.push_back(data.substr(now, peek - now));
+            now = peek;
         }
+
+        now++;
     }
 
     return ret;
