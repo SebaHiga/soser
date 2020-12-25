@@ -118,9 +118,7 @@ public:
 
         for(const auto& d : dataList){
             T tmp;
-
             insertValue(tmp, d);
-
             container.push_back(tmp);
         }
 
