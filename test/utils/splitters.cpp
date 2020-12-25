@@ -7,7 +7,9 @@
 
 #define STRING_1 "{\"array\": [1, 2, 3], \"color\": \"gold\", \"null\": \"null\", \"number\": 123, \"object\": {\"a\": \"b\", \"c\": \"d\"}, \"string\": \"Hello World\"}"
 
-TEST_CASE("Testing value splitter", "[splitVals]")
+#define STRING_2 "[{\"years\": 4, \"position\": \"swimmer\", \"vec\": [1, 2, 3, 4]}, {\"years\": 4, \"position\": \"swimmer\", \"vec\": [1, 2, 3, 4]}]"
+
+TEST_CASE("Testing value splitter with simple case", "[splitVals]")
 {
     std::string str(STRING_1);
 
@@ -30,5 +32,23 @@ TEST_CASE("Testing value splitter", "[splitVals]")
             REQUIRE( *itList == *itExpected );
         }
     }
+}
 
+TEST_CASE("Array objects", "[ObjArray]"){
+    std::string str(STRING_2);
+
+    auto list = sopack::getContainerList(str);
+
+    std::list<std::string> expected{
+        "{\"years\": 4, \"position\": \"swimmer\", \"vec\": [1, 2, 3, 4]}",
+        "{\"years\": 4, \"position\": \"swimmer\", \"vec\": [1, 2, 3, 4]}"
+    };
+
+    SECTION("Values must be equal"){
+        auto itList = list.begin();
+        auto itExpected = expected.begin();
+        for(; itList != list.end(); itList++, itExpected++){
+            REQUIRE( *itList == *itExpected );
+        }
+    }
 }
