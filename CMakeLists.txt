@@ -5,12 +5,16 @@ project(sopacker)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fconcepts -Wall -Wextra -Werror -O3")
 
-#libsopack
-add_subdirectory("lib")
-
 # Conan
 include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
 conan_basic_setup()
+
+#libsopack
+add_subdirectory("lib")
+
+#benchmarks
+add_subdirectory("test/benchmark")
+
 
 #Executables and tests
 add_executable(sop main.cpp)

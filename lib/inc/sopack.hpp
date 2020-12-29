@@ -202,13 +202,10 @@ decltype(auto) _so_serialize () const {\
 _so_memberValues = sopack::toStrArr<sopack::argCount(#__VA_ARGS__)>(__VA_ARGS__);\
 return sopack::serializeObject(_so_memberNames, _so_memberValues);\
  }\
- void _so_deserialize (const std::string& data){\
-     sopack::deSerializeObject<sopack::argCount(#__VA_ARGS__)>(data, __VA_ARGS__);\
- }\
-friend std::string operator>> (const std::string& data, TYPE& t){\
-    t._so_deserialize(data);\
-    return data;\
-}\
+ void _so_deserialize (const std::string& data)\
+ {sopack::deSerializeObject<sopack::argCount(#__VA_ARGS__)>(data, __VA_ARGS__);}\
+friend std::string operator>> (const std::string& data, TYPE& t)\
+{t._so_deserialize(data);return data;}\
 template<sopack::detail::not_so_helper T>\
 friend T& operator<< (T& os, const TYPE& t)\
 { os << (sopack::SOPack<1>() << t).unpack(); return os; }
