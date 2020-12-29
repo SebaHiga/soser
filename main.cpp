@@ -38,6 +38,7 @@ public:
 int main() {
     Job p;
 
+    sopack::load(p, "p.txt");
     std::cout << p << '\n';    
 
     std::string str("{\"years\": 42, \"position\": \"modified\", \"vec\": [4, 3, 2, 1]}");
