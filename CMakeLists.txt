@@ -13,7 +13,7 @@ conan_basic_setup()
 add_subdirectory("lib")
 
 #benchmarks
-add_subdirectory("test/benchmark")
+add_subdirectory("benchmark")
 
 
 #Executables and tests

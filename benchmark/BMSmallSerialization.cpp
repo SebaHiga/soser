@@ -1,3 +1,4 @@
+#include <boost/archive/text_oarchive.hpp>
 #include <cereal/types/unordered_map.hpp>
 #include <cereal/types/memory.hpp>
 #include <benchmark/benchmark.h>
@@ -34,7 +35,7 @@ static void BM_StructSerializationRaw(benchmark::State& state) {
 }
 BENCHMARK(BM_StructSerializationRaw);
 
-struct B {
+struct CEREAL {
     int i = 1;
     float f = 1.0;
     std::string str = "hello";
@@ -53,12 +54,45 @@ static void BM_StructCereal(benchmark::State& state) {
         {
             cereal::JSONOutputArchive oarchive(ss); // Create an output archive
 
-            B b;
+            CEREAL b;
             oarchive(b); // Write the data to the archive
             ss.str();
         } // archive goes out of scope, ensuring all contents are flushed
     }
 }
 BENCHMARK(BM_StructCereal);
+
+
+struct BOOST{
+    int i = 1;
+    float f = 1.0;
+    std::string str = "hello";
+
+    friend class boost::serialization::access;
+    template<class Archive>
+    void serialize(Archive & ar, [[maybe_unused]] const unsigned int version){
+        ar & i;
+        ar & f;
+        ar & str;
+    }
+};
+
+static void BM_StructBoost(benchmark::State& state) {
+    for (auto _ : state) {
+        std::stringstream ss;
+        BOOST b;
+
+        {
+            boost::archive::text_oarchive ar(ss);
+
+            ar << b;
+        }
+
+        ss.str();
+
+    }
+}
+BENCHMARK(BM_StructBoost);
+
 
 BENCHMARK_MAIN();
