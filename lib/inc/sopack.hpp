@@ -17,8 +17,9 @@ struct SOPack{
 public:
     SOPack(){}
     SOPack([[maybe_unused]] size_t memSize){ openBracket(); }
-    SOPack([[maybe_unused]] std::array<std::string, N> content){ arr = content; }
+    SOPack([[maybe_unused]] std::array<std::string_view, N> content){ arr_view = content; }
     std::array<std::string, N> arr;
+    std::array<std::string_view, N> arr_view;
     std::list<std::string> list;
     std::size_t index = 0;
 
@@ -50,7 +51,7 @@ public:
 
     template<typename T>
     constexpr SOPack& operator>> (T& val){
-        insertValue(val, pop());
+        insertValue(val, pop(true));
 
         return *this;
     }
@@ -76,8 +77,6 @@ public:
 
             throw std::logic_error(str);
         }
-
-        index++;
     }
 
     template<typename CNTR>
@@ -100,13 +99,12 @@ public:
     SOPack& operator>> (std::vector<T>& container)
     {
         container.clear();
-        const auto& data = arr[index];
-        auto dataList = getContainerList(data);
+        const auto dataList = getContainerList(arr_view[index]);
 
         for(const auto& d : dataList){
             T tmp;
             insertValue(tmp, d);
-            container.push_back(tmp);
+            container.push_back(std::move(tmp));
         }
 
         return *this;
@@ -143,27 +141,29 @@ public:
         index++;
     }
 
-    std::string pop(){
-        if (N > 0) {
-            if (index < N) {
-                return arr[index];
-            }
-            else{
-                throw std::out_of_range("No items left from the static array");
-            }
+    std::string_view pop(const bool view = false){
+        std::string_view ret;
+
+        if (view and index < N) {
+            ret = arr_view[index];
         }
-        else{
-            if (list.size() > 0){
-                auto tmp = list.front();
-                list.pop_front();
-                return tmp;
+        else {
+            if (N > 0 and index < N) {
+                ret = arr[index];
             }
             else{
-                throw std::out_of_range("No items left from the dynamic array");
+                if (list.size() > 0){
+                    auto tmp = list.front();
+                    list.pop_front();
+                    ret = tmp;
+                }
+                else{
+                    throw std::out_of_range("No items left from the dynamic array");
+                }
             }
         }
         index++;
-        return "";
+        return ret;
     }
 
     void pushSeparator(){

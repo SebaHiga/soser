@@ -10,8 +10,8 @@ namespace sopack {
 std::list<std::string_view> getContainerList(const std::string_view& data);
 
 template<size_t N>
-auto splitVals(const std::string_view& str){
-    std::array<std::string, N> arr;
+std::array<std::string_view, N> splitVals(const std::string_view& str){
+    std::array<std::string_view, N> arr;
 
     size_t index = 0;
     size_t peaker = 0;
