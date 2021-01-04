@@ -52,8 +52,6 @@ public:
     constexpr SOPack& operator>> (T& val){
         insertValue(val, pop());
 
-        index++;
-
         return *this;
     }
 
@@ -78,6 +76,8 @@ public:
 
             throw std::logic_error(str);
         }
+
+        index++;
     }
 
     template<typename CNTR>
@@ -109,7 +109,6 @@ public:
             container.push_back(tmp);
         }
 
-        index++;
         return *this;
     }
 
@@ -183,8 +182,7 @@ auto toStrArr(T& ...args){
 
 template<size_t N, typename... T>
 auto deSerializeObject(const std::string_view& content, T& ...args){
-    auto arr = splitVals<N>(content);
-    SOPack<N> strHelper(arr);
+    SOPack<N> strHelper(splitVals<N>(content));
 
     (strHelper >> ... >> args);
 }
