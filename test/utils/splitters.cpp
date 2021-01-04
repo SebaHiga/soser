@@ -13,9 +13,9 @@ TEST_CASE("Testing value splitter with simple case", "[splitVals]")
 {
     std::string str(STRING_1);
 
-    auto list = sopack::splitVals<7>(str);
+    auto list = sopack::splitVals<6>(str);
 
-    std::list<std::string> expected{
+    std::list<std::string_view> expected{
         "[1, 2, 3]",
         "\"gold\"",
         "\"null\"",
@@ -39,7 +39,7 @@ TEST_CASE("Array objects", "[ObjArray]"){
 
     auto list = sopack::getContainerList(str);
 
-    std::list<std::string> expected{
+    std::list<std::string_view> expected{
         "{\"years\": 4, \"position\": \"swimmer\", \"vec\": [1, 2, 3, 4]}",
         "{\"years\": 4, \"position\": \"swimmer\", \"vec\": [1, 2, 3, 4]}"
     };
