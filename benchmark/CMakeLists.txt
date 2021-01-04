@@ -6,4 +6,7 @@ target_link_libraries(01BM_Serialization ${CONAN_LIBS} libsopack)
 add_executable(02BM_LargeSerialization BMLargeSerialization.cpp)
 target_link_libraries(02BM_LargeSerialization ${CONAN_LIBS} libsopack)
 
+add_executable(03BM_SmallDeserialization BMSmallDeserialization.cpp)
+target_link_libraries(03BM_SmallDeserialization ${CONAN_LIBS} libsopack)
+
 endif()
