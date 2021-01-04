@@ -3,13 +3,14 @@
 #include <string>
 #include <list>
 #include <array>
+#include <string_view>
 
 namespace sopack {
 
-std::list<std::string> getContainerList(const std::string& data);
+std::list<std::string_view> getContainerList(const std::string_view& data);
 
 template<size_t N>
-auto splitVals(const std::string& str){
+auto splitVals(const std::string_view& str){
     std::array<std::string, N> arr;
 
     size_t index = 0;

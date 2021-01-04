@@ -58,12 +58,12 @@ public:
     }
 
     template<typename T>
-    constexpr void insertValue (T& val, std::string data){
+    constexpr void insertValue (T& val, const std::string_view& data){
         if constexpr (detail::is_integral<T>){
-            val = std::stoi(data);
+            val = std::stoi(data.data());
         }
         else if constexpr (detail::is_floating<T>){
-            val = std::stof(data);
+            val = std::stof(data.data());
         }
         else if constexpr (detail::is_string<T>){
             val = data.substr(1, arr[index].length()-2);
@@ -182,7 +182,7 @@ auto toStrArr(T& ...args){
 }
 
 template<size_t N, typename... T>
-auto deSerializeObject(const std::string &content, T& ...args){
+auto deSerializeObject(const std::string_view& content, T& ...args){
     auto arr = splitVals<N>(content);
     SOPack<N> strHelper(arr);
 
@@ -202,7 +202,7 @@ decltype(auto) _so_serialize () const {\
 _so_memberValues = sopack::toStrArr<sopack::argCount(#__VA_ARGS__)>(__VA_ARGS__);\
 return sopack::serializeObject(_so_memberNames, _so_memberValues);\
  }\
- void _so_deserialize (const std::string& data)\
+ void _so_deserialize (const std::string_view& data)\
  {sopack::deSerializeObject<sopack::argCount(#__VA_ARGS__)>(data, __VA_ARGS__);}\
 friend std::string operator>> (const std::string& data, TYPE& t)\
 {t._so_deserialize(data);return data;}\

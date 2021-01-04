@@ -3,9 +3,9 @@
 
 namespace sopack {
 
-std::list<std::string> getContainerList(const std::string& data){
+std::list<std::string_view> getContainerList(const std::string_view& data){
     bool isObjectContainer = data[1] == '{';
-    std::list<std::string> ret;
+    std::list<std::string_view> ret;
 
     size_t now = 0;
     auto peek = now;
