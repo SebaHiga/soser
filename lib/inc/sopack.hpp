@@ -65,7 +65,7 @@ public:
             val = std::stof(data.data());
         }
         else if constexpr (detail::is_string<T>){
-            val = data.substr(1, arr[index].length()-2);
+            val = data.substr(1, data.length()-2);
         }
         else if constexpr (detail::has_sop_serialize<T>){
             val._so_deserialize(data);
