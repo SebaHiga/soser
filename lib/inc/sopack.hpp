@@ -17,11 +17,14 @@ struct SOPack{
 public:
     SOPack(){}
     SOPack([[maybe_unused]] size_t memSize){ openBracket(); }
-    SOPack([[maybe_unused]] std::array<std::string_view, N> content){ arr_view = content; }
+    SOPack([[maybe_unused]] std::array<std::string_view, N> content){
+        arr_view = content;
+    }
     std::array<std::string, N> arr;
     std::array<std::string_view, N> arr_view;
     std::list<std::string> list;
     std::size_t index = 0;
+    std::size_t len = 0;
 
     inline void openBracket() { list.push_back("["); }
     inline void closeBracket() { list.push_back("]"); }
@@ -112,6 +115,7 @@ public:
 
     std::string unpack(){
         std::string ss;
+        ss.reserve(len);
 
         if (N <= 0){
             list.pop_back(); 
@@ -139,6 +143,7 @@ public:
             list.emplace_back(str);
         }
         index++;
+        len += str.length() + 2;
     }
 
     std::string_view pop(const bool view = false){
