@@ -8,7 +8,11 @@
 #include <benchmark/benchmark.h>
 #include <cereal/archives/json.hpp>
 #include <sstream>
+
+#define SO_USE_STD_OPERATORS
 #include "sopack.hpp"
+
+#include <tser/tser.hpp>
 
 struct A {
     int i = 1;
@@ -26,8 +30,10 @@ struct A {
 
 static void BM_StructSerialization(benchmark::State& state) {
     A a;
-    for (auto _ : state)
-    a._so_serialize();
+    std::stringstream ss;
+    for (auto _ : state) {
+        ss << a;
+    }
 }
 // Register the function as a benchmark
 BENCHMARK(BM_StructSerialization);
@@ -65,12 +71,12 @@ struct CEREAL {
 
 // Define another benchmark
 static void BM_StructCereal(benchmark::State& state) {
+    std::stringstream ss;
+    CEREAL b;
     for (auto _ : state) {
-        std::stringstream ss;
         {
             cereal::JSONOutputArchive oarchive(ss); // Create an output archive
 
-            CEREAL b;
             oarchive(b); // Write the data to the archive
             ss.str();
         } // archive goes out of scope, ensuring all contents are flushed
@@ -101,9 +107,9 @@ struct BOOST{
 };
 
 static void BM_StructBoost(benchmark::State& state) {
+    std::stringstream ss;
+    BOOST b;
     for (auto _ : state) {
-        std::stringstream ss;
-        BOOST b;
 
         {
             boost::archive::text_oarchive ar(ss);
@@ -117,5 +123,28 @@ static void BM_StructBoost(benchmark::State& state) {
 }
 BENCHMARK(BM_StructBoost);
 
+struct TSER {
+    DEFINE_SERIALIZABLE(TSER, i, f, str, vec_str);
+    
+    int i = 1;
+    float f = 1.0;
+    std::string str = "hello";
+    std::vector<std::string> vec_str{
+        "first",
+        "second",
+        "third",
+        "fourth"
+    };
+};
+
+static void BM_StructTser(benchmark::State& state) {
+    TSER tser;
+    std::stringstream ss;
+    for (auto _ : state) {
+        ss << tser;
+    }
+}
+// Register the function as a benchmark
+BENCHMARK(BM_StructTser);
 
 BENCHMARK_MAIN();

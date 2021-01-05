@@ -5,6 +5,7 @@
 #include <cereal/archives/json.hpp>
 #include <sstream>
 #include "sopack.hpp"
+#include <tser/tser.hpp>
 
 struct A {
     int i = 1;
@@ -93,6 +94,27 @@ static void BM_StructBoost(benchmark::State& state) {
     }
 }
 BENCHMARK(BM_StructBoost);
+
+struct TSER {
+    DEFINE_SERIALIZABLE(TSER, i, f, str);
+
+    int i = 1;
+    float f = 1.0;
+    std::string str = "hello";
+};
+
+static void BM_StructTser(benchmark::State& state) {
+    TSER tser;
+    for (auto _ : state) {
+        std::stringstream ss;
+
+        ss << tser;
+
+        ss.str();
+
+    }
+}
+BENCHMARK(BM_StructTser);
 
 
 BENCHMARK_MAIN();
