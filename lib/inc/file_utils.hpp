@@ -4,11 +4,11 @@
 #include <iostream>
 #include <fstream>
 #include <string_view>
-#include "sopack.hpp"
+#include "soser.hpp"
 
-namespace sopack{
+namespace soser {
 
-template<detail::has_sop_serialize T>
+template<detail::has_soser_serialize T>
 void load(T& data, const std::string& path)
 {
     std::ifstream file(path.c_str(), std::ifstream::in);
@@ -19,7 +19,7 @@ void load(T& data, const std::string& path)
     }
 }
 
-template<detail::has_sop_serialize T>
+template<detail::has_soser_serialize T>
 void save(T& data, const std::string& path)
 {
     std::ofstream output(path);

@@ -7,18 +7,18 @@ add_library(test-main
 
 # CORE Functionalities
 add_executable(01T_base core/base.cpp)
-target_link_libraries(01T_base test-main libsopack ${CONAN_LIBS})
+target_link_libraries(01T_base test-main libsoser ${CONAN_LIBS})
 
 add_executable(02T_Deserialization core/deserialization.cpp)
-target_link_libraries(02T_Deserialization test-main libsopack ${CONAN_LIBS})
+target_link_libraries(02T_Deserialization test-main libsoser ${CONAN_LIBS})
 
 add_executable(04T_ContainerSupport core/container_support.cpp)
-target_link_libraries(04T_ContainerSupport test-main libsopack ${CONAN_LIBS})
+target_link_libraries(04T_ContainerSupport test-main libsoser ${CONAN_LIBS})
 
 
 # UTILS Functionalities
 add_executable(03T_Splitters utils/splitters.cpp)
-target_link_libraries(03T_Splitters test-main libsopack ${CONAN_LIBS})
+target_link_libraries(03T_Splitters test-main libsoser ${CONAN_LIBS})
 
 
 include(CTest)

@@ -10,12 +10,12 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(tser)
 
 add_executable(01BM_Serialization BMSmallSerialization.cpp)
-target_link_libraries(01BM_Serialization ${CONAN_LIBS} libsopack KonanM::tser)
+target_link_libraries(01BM_Serialization ${CONAN_LIBS} libsoser KonanM::tser)
 
 add_executable(02BM_LargeSerialization BMLargeSerialization.cpp)
-target_link_libraries(02BM_LargeSerialization ${CONAN_LIBS} libsopack KonanM::tser)
+target_link_libraries(02BM_LargeSerialization ${CONAN_LIBS} libsoser KonanM::tser)
 
 add_executable(03BM_SmallDeserialization BMSmallDeserialization.cpp)
-target_link_libraries(03BM_SmallDeserialization ${CONAN_LIBS} libsopack)
+target_link_libraries(03BM_SmallDeserialization ${CONAN_LIBS} libsoser)
 
 endif()

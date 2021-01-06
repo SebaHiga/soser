@@ -5,7 +5,7 @@
 #include <array>
 #include <string_view>
 
-namespace sopack {
+namespace soser {
 
 std::list<std::string_view> getContainerList(const std::string_view& data);
 

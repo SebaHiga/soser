@@ -1,7 +1,7 @@
 #include "catch.hpp"
 
 #define SO_USE_STD_OPERATORS
-#include "sopack.hpp"
+#include "soser.hpp"
 #include <string>
 #include <sstream>
 #include <vector>

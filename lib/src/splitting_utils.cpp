@@ -1,7 +1,7 @@
 #include <splitting_utils.hpp>
 #include <list>
 
-namespace sopack {
+namespace soser {
 
 std::list<std::string_view> getContainerList(const std::string_view& data){
     bool isObjectContainer = data[1] == '{';

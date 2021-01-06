@@ -10,14 +10,14 @@
 #include "splitting_utils.hpp"
 #include "file_utils.hpp"
 
-namespace sopack{
+namespace soser {
 
 template<size_t N>
-struct SOPack{
+struct SOSer{
 public:
-    SOPack(){}
-    SOPack([[maybe_unused]] size_t memSize){ openBracket(); }
-    SOPack([[maybe_unused]] std::array<std::string_view, N> content){
+    SOSer(){}
+    SOSer([[maybe_unused]] size_t memSize){ openBracket(); }
+    SOSer([[maybe_unused]] std::array<std::string_view, N> content){
         arr_view = content;
     }
     std::array<std::string, N> arr;
@@ -30,14 +30,14 @@ public:
     inline void closeBracket() { list.push_back("]"); }
 
     template<typename T>
-    constexpr SOPack& operator<< (const T& val){
+    constexpr SOSer& operator<< (const T& val){
         if constexpr (detail::is_numeric<T>){
             push(std::to_string(val));
         }
         else if constexpr (detail::is_string<T>){
             push("\"" + std::string(val) + "\"");
         }
-        else if constexpr (detail::has_sop_serialize<T>){
+        else if constexpr (detail::has_soser_serialize<T>){
             push(val._so_serialize());
         }
         else{
@@ -53,7 +53,7 @@ public:
     }
 
     template<typename T>
-    constexpr SOPack& operator>> (T& val){
+    constexpr SOSer& operator>> (T& val){
         insertValue(val, pop(true));
 
         return *this;
@@ -70,7 +70,7 @@ public:
         else if constexpr (detail::is_string<T>){
             val = data.substr(1, data.length()-2);
         }
-        else if constexpr (detail::has_sop_serialize<T>){
+        else if constexpr (detail::has_soser_serialize<T>){
             val._so_deserialize(data);
         }
         else{
@@ -83,9 +83,9 @@ public:
     }
 
     template<typename CNTR>
-    SOPack& operator<< (const CNTR& container) requires detail::is_container<CNTR>
+    SOSer& operator<< (const CNTR& container) requires detail::is_container<CNTR>
     {
-        SOPack<0> tmp(1);
+        SOSer<0> tmp(1);
 
         if(!container.empty()){
             for(auto it = container.begin(); it != container.end(); it++){
@@ -99,7 +99,7 @@ public:
     }
 
     template<typename T>
-    SOPack& operator>> (std::vector<T>& container)
+    SOSer& operator>> (std::vector<T>& container)
     {
         container.clear();
         const auto dataList = getContainerList(arr_view[index]);
@@ -178,7 +178,7 @@ public:
 
 template<size_t N, class... T>
 auto toStrArr(T& ...args){
-    SOPack<N> strHelper(sizeof...(T));
+    SOSer<N> strHelper(sizeof...(T));
 
     (strHelper << ... << args);
 
@@ -187,7 +187,7 @@ auto toStrArr(T& ...args){
 
 template<size_t N, typename... T>
 auto deSerializeObject(const std::string_view& content, T& ...args){
-    SOPack<N> strHelper(splitVals<N>(content));
+    SOSer<N> strHelper(splitVals<N>(content));
 
     (strHelper >> ... >> args);
 }
@@ -198,29 +198,29 @@ auto deSerializeObject(const std::string_view& content, T& ...args){
 #ifdef SO_USE_STD_OPERATORS
 #define _PACK_THESE_(TYPE,...)\
 private:\
-std::array<std::string_view, sopack::argCount(#__VA_ARGS__)> _so_memberNames{sopack::iniNames<sopack::argCount(#__VA_ARGS__)>(#__VA_ARGS__)};\
-mutable std::array<std::string, sopack::argCount(#__VA_ARGS__)> _so_memberValues;\
+std::array<std::string_view, soser::argCount(#__VA_ARGS__)> _so_memberNames{soser::iniNames<soser::argCount(#__VA_ARGS__)>(#__VA_ARGS__)};\
+mutable std::array<std::string, soser::argCount(#__VA_ARGS__)> _so_memberValues;\
 public:\
 decltype(auto) _so_serialize () const {\
-_so_memberValues = sopack::toStrArr<sopack::argCount(#__VA_ARGS__)>(__VA_ARGS__);\
-return sopack::serializeObject(_so_memberNames, _so_memberValues);\
+_so_memberValues = soser::toStrArr<soser::argCount(#__VA_ARGS__)>(__VA_ARGS__);\
+return soser::serializeObject(_so_memberNames, _so_memberValues);\
  }\
  void _so_deserialize (const std::string_view& data)\
- {sopack::deSerializeObject<sopack::argCount(#__VA_ARGS__)>(data, __VA_ARGS__);}\
+ {soser::deSerializeObject<soser::argCount(#__VA_ARGS__)>(data, __VA_ARGS__);}\
 friend std::string operator>> (const std::string& data, TYPE& t)\
 {t._so_deserialize(data);return data;}\
-template<sopack::detail::not_so_helper T>\
+template<soser::detail::not_soser_helper T>\
 friend T& operator<< (T& os, const TYPE& t)\
-{ os << (sopack::SOPack<1>() << t).unpack(); return os; }
+{ os << (soser::SOSer<1>() << t).unpack(); return os; }
 #else 
 
 #define _PACK_THESE_(TYPE,...)\
 private:\
-std::array<std::string_view, sopack::argCount(#__VA_ARGS__)> _so_memberNames{sopack::iniNames<sopack::argCount(#__VA_ARGS__)>(#__VA_ARGS__)};\
-mutable std::array<std::string, sopack::argCount(#__VA_ARGS__)> _so_memberValues;\
+std::array<std::string_view, soser::argCount(#__VA_ARGS__)> _so_memberNames{soser::iniNames<soser::argCount(#__VA_ARGS__)>(#__VA_ARGS__)};\
+mutable std::array<std::string, soser::argCount(#__VA_ARGS__)> _so_memberValues;\
 public:\
 decltype(auto) _so_serialize () const {\
-_so_memberValues = sopack::toStrArr<sopack::argCount(#__VA_ARGS__)>(__VA_ARGS__);\
-return sopack::serializeObject(_so_memberNames, _so_memberValues);\
+_so_memberValues = soser::toStrArr<soser::argCount(#__VA_ARGS__)>(__VA_ARGS__);\
+return soser::serializeObject(_so_memberNames, _so_memberValues);\
  }
 #endif

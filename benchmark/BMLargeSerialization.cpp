@@ -10,7 +10,7 @@
 #include <sstream>
 
 #define SO_USE_STD_OPERATORS
-#include "sopack.hpp"
+#include "soser.hpp"
 
 #include <tser/tser.hpp>
 
