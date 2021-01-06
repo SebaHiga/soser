@@ -16,7 +16,7 @@ std::list<std::string_view> getContainerList(const std::string_view& data){
     auto peek = now;
     bool found = false;
 
-    auto isValid = [] (const char c) {
+    auto isValid = [] (const char& c) {
         return c != '[' and c != ']' and c != ',' and c != ' ';
     };
 
