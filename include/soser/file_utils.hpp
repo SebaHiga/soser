@@ -9,21 +9,28 @@
 namespace soser {
 
 template<detail::has_soser_serialize T>
-void load(T& data, const std::string& path)
+bool load(T& data, const std::string& path)
 {
     std::ifstream file(path.c_str(), std::ifstream::in);
     std::string content;
     if (file.is_open()){
         getline(file, content);
         content >> data;
+        return true;
     }
+    return false;
 }
 
 template<detail::has_soser_serialize T>
-void save(T& data, const std::string& path)
+bool save(T& data, const std::string& path)
 {
     std::ofstream output(path);
-    output << data._so_serialize();
+    
+    if (output.is_open()) {
+        output << data._so_serialize();
+        return true;
+    }
+    return false;
 }
 
 } // namespace
