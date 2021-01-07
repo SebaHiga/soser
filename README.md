@@ -12,12 +12,13 @@ Many serializers have better features like encoding or object binarization. Even
 - gcc > 9.2
 
 # Design goals
+- Output with JSON format.
+- Fast?
 - Easy to implement.
 - Easy to deimplement.
 - Support for STL containers. 
 - Hopefully fun to read.
 - Readable saved serialized objects.
-- Output with JSON format.
 
 
 # A very simple example to print object on console
