@@ -8,12 +8,11 @@
 
 struct Job{
     Job () = default;
-    Job(std::string str, int y) : position(str), years(y) {}
-    std::string position = "none";
-    int years = 0;
-    std::vector<int> vec{1, 2, 3, 4};
+    Job(std::string str, int y) : m_position(str), m_years(y) {}
+    std::string m_position = "none";
+    int m_years = 0;
 
-   _PACK_THESE_(Job, years, position, vec);
+   _PACK_THESE_(Job, m_years, m_position);
 };
 
 class Person{
@@ -22,17 +21,15 @@ public:
         m_name(name),
         m_lastName(lastName),
         m_age(age){
-            jobs.emplace_back("swimmer", 4);
+            m_jobs.emplace_back("swimmer", 4);
         }
     std::string m_name = "none";
 public:
     std::string m_lastName;
     std::size_t m_age;
-    std::vector<Job> jobs;
-    Job working_as;
-    std::list<int> m_numbers{1, -2, 4};
+    std::vector<Job> m_jobs;
 
-    _PACK_THESE_(Person, m_name, m_lastName, jobs);
+    _PACK_THESE_(Person, m_name, m_lastName, m_jobs);
 };
 
 int main() {
@@ -41,7 +38,7 @@ int main() {
     soser::load(p, "p.txt");
     std::cout << p << '\n';    
 
-    std::string str("{\"years\": 42, \"position\": \"modified\", \"vec\": [4, 3, 2, 1]}");
+    std::string str("{\"years\": 42, \"position\": \"modified\"}");
 
     str >> p;
 
@@ -51,7 +48,7 @@ int main() {
 
     std::cout << per << '\n';
 
-    std::string str2("{\"m_name\": \"John\", \"m_lastName\": \"Doe\", \"jobs\": [{\"years\": 4, \"position\": \"swimmer\", \"vec\": [1, 2, 3, 4]}, {\"years\": 4, \"position\": \"swimmer\", \"vec\": [1, 2, 3, 4]}]}");
+    std::string str2("{\"m_name\": \"Juan\", \"m_lastName\": \"Perez\", \"jobs\": [{\"years\": 4, \"position\": \"swimmer\", \"vec\": [1, 2, 3, 4]}, {\"years\": 4, \"position\": \"swimmer\"}]}");
 
     str2 >> per;
 
