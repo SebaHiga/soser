@@ -98,8 +98,8 @@ public:
         return *this;
     }
 
-    template<typename T>
-    SOSer& operator>> (std::vector<T>& container)
+    template<template<class> class CNTR, typename T>
+    SOSer& operator>> (CNTR<T>& container) requires detail::is_container<CNTR<T>>
     {
         container.clear();
         const auto dataList = getContainerList(arr_view[index]);
@@ -206,7 +206,7 @@ _so_memberValues = soser::toStrArr<soser::argCount(#__VA_ARGS__)>(__VA_ARGS__);\
 return soser::serializeObject(_so_memberNames, _so_memberValues);\
  }\
  void _so_deserialize (const std::string_view& data)\
- {soser::deSerializeObject<soser::argCount(#__VA_ARGS__)>(data, __VA_ARGS__);}\
+{soser::deSerializeObject<soser::argCount(#__VA_ARGS__)>(data, __VA_ARGS__);}\
 friend std::string operator>> (const std::string& data, TYPE& t)\
 {t._so_deserialize(data);return data;}\
 template<soser::detail::not_soser_helper T>\
@@ -219,6 +219,8 @@ private:\
 std::array<std::string_view, soser::argCount(#__VA_ARGS__)> _so_memberNames{soser::iniNames<soser::argCount(#__VA_ARGS__)>(#__VA_ARGS__)};\
 mutable std::array<std::string, soser::argCount(#__VA_ARGS__)> _so_memberValues;\
 public:\
+ void _so_deserialize (const std::string_view& data)\
+{soser::deSerializeObject<soser::argCount(#__VA_ARGS__)>(data, __VA_ARGS__);}\
 decltype(auto) _so_serialize () const {\
 _so_memberValues = soser::toStrArr<soser::argCount(#__VA_ARGS__)>(__VA_ARGS__);\
 return soser::serializeObject(_so_memberNames, _so_memberValues);\
