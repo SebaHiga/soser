@@ -1,0 +1,10 @@
+[settings]
+compiler=gcc
+compiler.version=10
+compiler.libcxx=libstdc++11
+arch=x86_64
+os=Linux
+
+[env]
+CC=/usr/bin/gcc-10
+CXX=/usr/bin/g++-10
