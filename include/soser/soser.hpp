@@ -132,7 +132,7 @@ public:
     template<typename T>
     void push(const T& str){
         if (N > 0) {
-            if (index < N){
+            if (index <= N){
                 arr[index] = str;
             }
             else{
@@ -149,11 +149,11 @@ public:
     std::string_view pop(const bool view = false){
         std::string_view ret;
 
-        if (view and index < N) {
+        if (view and index <= N) {
             ret = arr_view[index];
         }
         else {
-            if (N > 0 and index < N) {
+            if (N > 0 and index <= N) {
                 ret = arr[index];
             }
             else{
