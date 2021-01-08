@@ -3,7 +3,7 @@
 
 #define SO_USE_STD_OPERATORS
 
-#include "soser.hpp"
+#include "soser/soser.hpp"
 #include <list>
 
 struct Job{

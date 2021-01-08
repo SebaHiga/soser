@@ -15,12 +15,12 @@ endif()
 add_subdirectory("benchmark")
 
 #Executables and tests
-#add_executable(soser main.cpp)
+add_executable(sample main.cpp)
 
 enable_testing()
 add_subdirectory(test)
 
-#Main target settings
+#Interface target settings
 target_include_directories(soser
     INTERFACE
     "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>"
@@ -29,4 +29,5 @@ target_include_directories(soser
 target_compile_features(soser INTERFACE cxx_std_17)
 target_compile_options(soser INTERFACE -fconcepts)
 
-# Basic C++ settings
+target_include_directories(sample PRIVATE ${PROJECT_SOURCE_DIR}/include)
+target_link_libraries(sample PRIVATE soser)
