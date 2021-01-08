@@ -14,9 +14,6 @@ endif()
 #benchmarks
 add_subdirectory("benchmark")
 
-#Executables and tests
-add_executable(sample main.cpp)
-
 enable_testing()
 add_subdirectory(test)
 
@@ -29,5 +26,9 @@ target_include_directories(soser
 target_compile_features(soser INTERFACE cxx_std_17)
 target_compile_options(soser INTERFACE -fconcepts)
 
+if (${BUILD_SAMPLE})
+#Executables and tests
+add_executable(sample main.cpp)
 target_include_directories(sample PRIVATE ${PROJECT_SOURCE_DIR}/include)
 target_link_libraries(sample PRIVATE soser)
+endif()
