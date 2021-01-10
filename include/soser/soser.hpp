@@ -199,11 +199,9 @@ auto deSerializeObject(const std::string_view& content, T& ...args){
 #define _PACK_THESE_(TYPE,...)\
 private:\
 std::array<std::string_view, soser::argCount(#__VA_ARGS__)> _so_memberNames{soser::iniNames<soser::argCount(#__VA_ARGS__)>(#__VA_ARGS__)};\
-mutable std::array<std::string, soser::argCount(#__VA_ARGS__)> _so_memberValues;\
 public:\
 decltype(auto) _so_serialize () const {\
-_so_memberValues = soser::toStrArr<soser::argCount(#__VA_ARGS__)>(__VA_ARGS__);\
-return soser::serializeObject(_so_memberNames, _so_memberValues);\
+return soser::serializeObject(_so_memberNames, soser::toStrArr<soser::argCount(#__VA_ARGS__)>(__VA_ARGS__));\
  }\
  void _so_deserialize (const std::string_view& data)\
 {soser::deSerializeObject<soser::argCount(#__VA_ARGS__)>(data, __VA_ARGS__);}\
@@ -216,13 +214,11 @@ friend T& operator<< (T& os, const TYPE& t)\
 
 #define _PACK_THESE_(TYPE,...)\
 private:\
-std::array<std::string_view, soser::argCount(#__VA_ARGS__)> _so_memberNames{soser::iniNames<soser::argCount(#__VA_ARGS__)>(#__VA_ARGS__)};\
-mutable std::array<std::string, soser::argCount(#__VA_ARGS__)> _so_memberValues;\
+const std::array<std::string_view, soser::argCount(#__VA_ARGS__)> _so_memberNames{soser::iniNames<soser::argCount(#__VA_ARGS__)>(#__VA_ARGS__)};\
 public:\
  void _so_deserialize (const std::string_view& data)\
 {soser::deSerializeObject<soser::argCount(#__VA_ARGS__)>(data, __VA_ARGS__);}\
 decltype(auto) _so_serialize () const {\
-_so_memberValues = soser::toStrArr<soser::argCount(#__VA_ARGS__)>(__VA_ARGS__);\
-return soser::serializeObject(_so_memberNames, _so_memberValues);\
+return soser::serializeObject(_so_memberNames, soser::toStrArr<soser::argCount(#__VA_ARGS__)>(__VA_ARGS__));\
  }
 #endif

@@ -111,14 +111,14 @@ std::array<std::string_view, N> splitVals(const std::string_view& str){
 }
 
 template<typename T, typename TT>
-auto serializeObject (T& names, TT& vals){
+auto serializeObject (const T& names, const TT&& vals){
     std::string ss;
 
     std::size_t len = 2;
     for (std::size_t i = 0; i < names.size(); i++) {
         len += names[i].length();
         len += vals[i].length();
-        len += 6;
+        len += 8;
     }
 
     ss.reserve(len);
