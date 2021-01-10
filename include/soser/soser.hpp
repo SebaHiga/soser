@@ -197,27 +197,17 @@ auto deSerializeObject(const std::string_view& content, T& ...args){
 
 #ifdef SO_USE_STD_OPERATORS
 #define _PACK_THESE_(TYPE,...)\
-const std::array<std::string_view, soser::argCount(#__VA_ARGS__)> _so_memberNames{soser::iniNames<soser::argCount(#__VA_ARGS__)>(#__VA_ARGS__)};\
+static constexpr std::array<std::string_view, soser::argCount(#__VA_ARGS__)> _so_memberNames{soser::iniNames<soser::argCount(#__VA_ARGS__)>(#__VA_ARGS__)};\
 public:\
-decltype(auto) _so_serialize () const {\
-return soser::serializeObject(_so_memberNames, soser::toStrArr<soser::argCount(#__VA_ARGS__)>(__VA_ARGS__));\
- }\
- void _so_deserialize (const std::string_view& data)\
-{soser::deSerializeObject<soser::argCount(#__VA_ARGS__)>(data, __VA_ARGS__);}\
-friend std::string operator>> (const std::string& data, TYPE& t)\
-{t._so_deserialize(data);return data;}\
-template<soser::detail::not_soser_helper T>\
-friend T& operator<< (T& os, const TYPE& t)\
-{ os << (soser::SOSer<1>() << t).unpack(); return os; }
+decltype(auto) _so_serialize () const {return soser::serializeObject(_so_memberNames, soser::toStrArr<soser::argCount(#__VA_ARGS__)>(__VA_ARGS__));}\
+void _so_deserialize (const std::string_view& data) {soser::deSerializeObject<soser::argCount(#__VA_ARGS__)>(data, __VA_ARGS__);}\
+friend std::string operator>> (const std::string& data, TYPE& t){t._so_deserialize(data);return data;}\
+template<soser::detail::not_soser_helper T> friend T& operator<< (T& os, const TYPE& t){ os << (soser::SOSer<1>() << t).unpack(); return os; }
 #else 
 
 #define _PACK_THESE_(TYPE,...)\
-private:\
-const std::array<std::string_view, soser::argCount(#__VA_ARGS__)> _so_memberNames{soser::iniNames<soser::argCount(#__VA_ARGS__)>(#__VA_ARGS__)};\
+static constexpr std::array<std::string_view, soser::argCount(#__VA_ARGS__)> _so_memberNames{soser::iniNames<soser::argCount(#__VA_ARGS__)>(#__VA_ARGS__)};\
 public:\
- void _so_deserialize (const std::string_view& data)\
-{soser::deSerializeObject<soser::argCount(#__VA_ARGS__)>(data, __VA_ARGS__);}\
-decltype(auto) _so_serialize () const {\
-return soser::serializeObject(_so_memberNames, soser::toStrArr<soser::argCount(#__VA_ARGS__)>(__VA_ARGS__));\
- }
+void _so_deserialize (const std::string_view& data){soser::deSerializeObject<soser::argCount(#__VA_ARGS__)>(data, __VA_ARGS__);}\
+decltype(auto) _so_serialize () const {return soser::serializeObject(_so_memberNames, soser::toStrArr<soser::argCount(#__VA_ARGS__)>(__VA_ARGS__));}
 #endif

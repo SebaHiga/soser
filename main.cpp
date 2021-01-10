@@ -7,8 +7,6 @@
 #include <list>
 
 struct Job{
-    Job () = default;
-    Job(std::string str, int y) : m_position(str), m_years(y) {}
     std::string m_position = "none";
     int m_years = 0;
 
@@ -21,7 +19,7 @@ public:
         m_name(name),
         m_lastName(lastName),
         m_age(age){
-            m_jobs.emplace_back("swimmer", 4);
+            m_jobs.push_back({"swimmer", 4});
         }
     std::string m_name = "none";
 public:
@@ -34,6 +32,8 @@ public:
 
 int main() {
     Job p;
+
+    p = p;
 
     soser::load(p, "p.txt");
     std::cout << p << '\n';    
