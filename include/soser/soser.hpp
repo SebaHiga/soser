@@ -197,8 +197,7 @@ auto deSerializeObject(const std::string_view& content, T& ...args){
 
 #ifdef SO_USE_STD_OPERATORS
 #define _PACK_THESE_(TYPE,...)\
-private:\
-std::array<std::string_view, soser::argCount(#__VA_ARGS__)> _so_memberNames{soser::iniNames<soser::argCount(#__VA_ARGS__)>(#__VA_ARGS__)};\
+const std::array<std::string_view, soser::argCount(#__VA_ARGS__)> _so_memberNames{soser::iniNames<soser::argCount(#__VA_ARGS__)>(#__VA_ARGS__)};\
 public:\
 decltype(auto) _so_serialize () const {\
 return soser::serializeObject(_so_memberNames, soser::toStrArr<soser::argCount(#__VA_ARGS__)>(__VA_ARGS__));\
