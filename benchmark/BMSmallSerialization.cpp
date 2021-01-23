@@ -106,9 +106,9 @@ struct TSER {
 };
 
 static void BM_StructTser(benchmark::State& state) {
-    TSER tser;
-    std::stringstream ss;
     for (auto _ : state) {
+        TSER tser;
+        std::stringstream ss;
         ss << tser;
 
         ss.str();
