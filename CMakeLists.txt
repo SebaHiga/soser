@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.13.4)
 project(soser)
 
 add_library(soser INTERFACE)
+add_library(SebaHiga::soser ALIAS ${PROJECT_NAME})
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
 
