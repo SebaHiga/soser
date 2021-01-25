@@ -1,4 +1,4 @@
 # https://clang.llvm.org/docs/ClangFormatStyleOptions.html
 # To disable for a line use `// clang-format off`
-BasedOnStyle: mozilla # https://google.github.io/styleguide/cppguide.html
+BasedOnStyle: webkit # https://google.github.io/styleguide/cppguide.html
 # IndentPPDirectives: BeforeHash

@@ -1,4 +1,4 @@
-#include "catch.hpp"
+#include <catch2/catch.hpp>
 
 #define SO_USE_STD_OPERATORS
 #include "soser.hpp"

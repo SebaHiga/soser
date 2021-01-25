@@ -1,4 +1,4 @@
-#include "catch.hpp"
+#include <catch2/catch.hpp>
 
 #define SO_USE_STD_OPERATORS
 #include "soser.hpp"
@@ -11,11 +11,11 @@ struct Structure
     float f = 10.0;
     std::string str = "hello";
 
-    bool operator== (const Structure& s){
+    bool operator== (const Structure& s) const {
         return i == s.i and f == s.f and str == s.str;
     }
 
-    bool operator!= (const Structure& s){
+    bool operator!= (const Structure& s) const {
         return !(*this == s);
     }
 
