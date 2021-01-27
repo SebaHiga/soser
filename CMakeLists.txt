@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.13.4)
 project(soser)
 
 add_library(soser INTERFACE)
-add_library(SebaHiga::soser ALIAS ${PROJECT_NAME})
+add_library(SebaHiga::soser ALIAS soser)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
 
@@ -13,9 +13,6 @@ if (EXISTS ${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
     include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
     conan_basic_setup()
 endif()
-
-#benchmarks
-add_subdirectory("benchmark")
 
 enable_testing()
 add_subdirectory(test)
@@ -35,3 +32,6 @@ add_executable(sample main.cpp)
 target_include_directories(sample PRIVATE ${PROJECT_SOURCE_DIR}/include)
 target_link_libraries(sample PRIVATE soser)
 endif()
+
+#benchmarks
+add_subdirectory("benchmark")
