@@ -99,7 +99,7 @@ public:
         for (const auto& d : dataList) {
             T tmp;
             insertValue(tmp, d);
-            container.push_back(std::move(tmp));
+            container.emplace_back(std::move(tmp));
         }
 
         return *this;
