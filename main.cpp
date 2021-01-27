@@ -55,5 +55,7 @@ int main()
 
     std::cout << per;
 
+    soser::save(per, "person.json");
+
     return 0;
 }

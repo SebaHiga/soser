@@ -64,3 +64,11 @@ int main () {
     std::cout << job._so_serialize();
 }
 ```
+
+## Quick notes for benchmarking
+If you want to compile the benchmarks using conan, you need to specify some compile features for boost libraries
+
+
+```sh
+conan install --settings compiler.libcxx="libstdc++11" ..
+```
