@@ -1,9 +1,7 @@
 #pragma once
 
 #include <array>
-#include <iostream>
 #include <list>
-#include <sstream>
 #include <stdexcept>
 #include <string_view>
 
@@ -182,16 +180,14 @@ auto serializeObject(const T& names, const TT&& vals)
     for (std::size_t i = 0; i < names.size() - 1; i++) {
         ss.append("\"")
             .append(names[i])
-            .append("\"")
-            .append(": ")
+            .append("\": ")
             .append(vals[i])
             .append(", ");
     }
 
     ss.append("\"")
         .append(names.back())
-        .append("\"")
-        .append(": ")
+        .append("\": ")
         .append(vals.back());
 
     ss.append("}");
