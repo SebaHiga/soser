@@ -52,13 +52,13 @@ public:
     template <typename T>
     constexpr SOSer& operator>>(T& val)
     {
-        insertValue(val, pop(true));
+        extractValue(val, pop(true));
 
         return *this;
     }
 
     template <typename T>
-    constexpr void insertValue(T& val, const std::string_view& data)
+    constexpr void extractValue(T& val, const std::string_view& data)
     {
         if constexpr (detail::is_integral<T>) {
             val = std::stoi(data.data());
@@ -99,7 +99,7 @@ public:
 
         for (const auto& d : dataList) {
             T tmp;
-            insertValue(tmp, d);
+            extractValue(tmp, d);
             container.emplace_back(std::move(tmp));
         }
 
@@ -118,7 +118,7 @@ public:
             if (index <= N) {
                 m_ret.append("\"").append(m_contents[index]).append("\": ").append(str);
                 if (index != N - 1) {
-                    m_ret.append(", ");
+                    pushSeparator();
                 }
             } else {
                 throw std::out_of_range("Cannot insert more object to static "
@@ -127,6 +127,7 @@ public:
         } else {
             m_ret.append(str);
         }
+
         index++;
         len += str.length() + 2;
     }
@@ -151,6 +152,7 @@ public:
                 }
             }
         }
+
         index++;
         return ret;
     }
