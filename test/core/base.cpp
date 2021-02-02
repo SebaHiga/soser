@@ -27,6 +27,7 @@ auto getString(T &data)
 TEST_CASE("Basic structure works", "[struct]")
 {
     Structure strc;
+    std::cout << strc;
 
     REQUIRE(getString(strc) == "{\"i\": 42, \"f\": 10.000000, \"str\": \"hello\"}");
     
