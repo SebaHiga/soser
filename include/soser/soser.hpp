@@ -16,20 +16,22 @@ struct SOSer {
 public:
     SOSer() { }
     SOSer([[maybe_unused]] size_t memSize) { openBracket(); }
-    SOSer([[maybe_unused]] std::array<std::string_view, N> content)
+    SOSer([[maybe_unused]] std::array<std::string_view, N> names)
     {
-        arr_view = content;
+        m_contents = names;
     }
-    std::array<std::string, N> arr;
-    std::array<std::string_view, N> arr_view;
-    std::list<std::string> list;
+
+    std::array<std::string_view, N> m_contents;
+    std::list<std::string> m_list;
     std::size_t index = 0;
     std::size_t len = 0;
-    std::string containerStr = "";
+    std::string m_ret = "";
 
-    inline void openBracket() { containerStr.append("["); }
-    inline void closeBracket() { containerStr.append("]"); }
-    inline void pushSeparator() { containerStr.append(", "); }
+    inline void startObject() { m_ret.append("{"); }
+    inline void endObject() { m_ret.append("}"); }
+    inline void openBracket() { m_ret.append("["); }
+    inline void closeBracket() { m_ret.append("]"); }
+    inline void pushSeparator() { m_ret.append(", "); }
 
     template <typename T>
     constexpr SOSer& operator<<(const T& val)
@@ -83,6 +85,7 @@ public:
             }
             tmp << container[container.size() - 1];
         }
+        tmp.closeBracket();
 
         push(tmp.unpack());
         return *this;
@@ -92,7 +95,7 @@ public:
     SOSer& operator>>(CNTR<T>& container) requires detail::is_container<CNTR<T>>
     {
         container.clear();
-        const auto dataList = getContainerList(arr_view[index]);
+        const auto dataList = getContainerList(m_contents[index]);
 
         for (const auto& d : dataList) {
             T tmp;
@@ -105,18 +108,7 @@ public:
 
     std::string unpack()
     {
-        std::string ss;
-        ss.reserve(len);
-
-        if (N <= 0) {
-            closeBracket();
-            return containerStr;
-        } else {
-            for (const auto& data : arr)
-                ss.append(data);
-        }
-
-        return ss;
+        return m_ret;
     }
 
     template <typename T>
@@ -124,13 +116,16 @@ public:
     {
         if (N > 0) {
             if (index <= N) {
-                arr[index] = str;
+                m_ret.append("\"").append(m_contents[index]).append("\": ").append(str);
+                if (index != N - 1) {
+                    m_ret.append(", ");
+                }
             } else {
                 throw std::out_of_range("Cannot insert more object to static "
                                         "array");
             }
         } else {
-            containerStr.append(str);
+            m_ret.append(str);
         }
         index++;
         len += str.length() + 2;
@@ -141,14 +136,14 @@ public:
         std::string_view ret;
 
         if (view and index <= N) {
-            ret = arr_view[index];
+            ret = m_contents[index];
         } else {
             if (N > 0 and index <= N) {
-                ret = arr[index];
+                ret = m_contents[index];
             } else {
-                if (list.size() > 0) {
-                    auto tmp = list.front();
-                    list.pop_front();
+                if (m_list.size() > 0) {
+                    auto tmp = m_list.front();
+                    m_list.pop_front();
                     ret = tmp;
                 } else {
                     throw std::out_of_range("No items left from the dynamic "
@@ -161,48 +156,16 @@ public:
     }
 };
 
-template <typename T, typename TT>
-auto serializeObject(const T& names, const TT&& vals)
-{
-    std::string ss;
-
-    std::size_t len = 2;
-    for (std::size_t i = 0; i < names.size(); i++) {
-        len += names[i].length();
-        len += vals[i].length();
-        len += 8;
-    }
-
-    ss.reserve(len);
-
-    ss.append("{");
-
-    for (std::size_t i = 0; i < names.size() - 1; i++) {
-        ss.append("\"")
-            .append(names[i])
-            .append("\": ")
-            .append(vals[i])
-            .append(", ");
-    }
-
-    ss.append("\"")
-        .append(names.back())
-        .append("\": ")
-        .append(vals.back());
-
-    ss.append("}");
-
-    return ss;
-}
-
 template <size_t N, class... T>
-auto toStrArr(const T&... args)
+std::string serializeObject(const std::array<std::string_view, N> names, const T&... args)
 {
-    SOSer<N> strHelper(sizeof...(T));
+    SOSer<N> strHelper(names);
+    strHelper.startObject();
 
     (strHelper << ... << args);
 
-    return std::move(strHelper.arr);
+    strHelper.endObject();
+    return strHelper.unpack();
 }
 
 template <size_t N, typename... T>
@@ -216,33 +179,31 @@ auto deSerializeObject(const std::string_view& content, T&... args)
 } // namespace soser
 
 #ifdef SO_USE_STD_OPERATORS
-#define _PACK_THESE_(TYPE, ...)                                                  \
-    static constexpr std::array<std::string_view, soser::argCount(#__VA_ARGS__)> \
-        _so_memberNames { soser::iniNames<soser::argCount(#__VA_ARGS__)>(        \
-            #__VA_ARGS__) };                                                     \
-                                                                                 \
-public:                                                                          \
-    decltype(auto) _so_serialize() const                                         \
-    {                                                                            \
-        return soser::serializeObject(                                           \
-            _so_memberNames,                                                     \
-            soser::toStrArr<soser::argCount(#__VA_ARGS__)>(__VA_ARGS__));        \
-    }                                                                            \
-    void _so_deserialize(const std::string_view& data)                           \
-    {                                                                            \
-        soser::deSerializeObject<soser::argCount(#__VA_ARGS__)>(data,            \
-            __VA_ARGS__);                                                        \
-    }                                                                            \
-    friend std::string operator>>(const std::string& data, TYPE& t)              \
-    {                                                                            \
-        t._so_deserialize(data);                                                 \
-        return data;                                                             \
-    }                                                                            \
-    template <soser::detail::not_soser_helper T>                                 \
-    friend T& operator<<(T& os, const TYPE& t)                                   \
-    {                                                                            \
-        os << (soser::SOSer<1>() << t).unpack();                                 \
-        return os;                                                               \
+#define _PACK_THESE_(TYPE, ...)                                                                     \
+    static constexpr std::array<std::string_view, soser::argCount(#__VA_ARGS__)>                    \
+        _so_memberNames { soser::iniNames<soser::argCount(#__VA_ARGS__)>(                           \
+            #__VA_ARGS__) };                                                                        \
+                                                                                                    \
+public:                                                                                             \
+    std::string _so_serialize() const                                                               \
+    {                                                                                               \
+        return soser::serializeObject<soser::argCount(#__VA_ARGS__)>(_so_memberNames, __VA_ARGS__); \
+    }                                                                                               \
+    void _so_deserialize(const std::string_view& data)                                              \
+    {                                                                                               \
+        soser::deSerializeObject<soser::argCount(#__VA_ARGS__)>(data,                               \
+            __VA_ARGS__);                                                                           \
+    }                                                                                               \
+    friend std::string operator>>(const std::string& data, TYPE& t)                                 \
+    {                                                                                               \
+        t._so_deserialize(data);                                                                    \
+        return data;                                                                                \
+    }                                                                                               \
+    template <soser::detail::not_soser_helper T>                                                    \
+    friend T& operator<<(T& os, const TYPE& t)                                                      \
+    {                                                                                               \
+        os << t._so_serialize();                                                                    \
+        return os;                                                                                  \
     }
 #else
 
@@ -259,8 +220,8 @@ public:                                                                         
     }                                                                            \
     decltype(auto) _so_serialize() const                                         \
     {                                                                            \
-        return soser::serializeObject(                                           \
+        return soser::serializeObject<soser::argCount(#__VA_ARGS__)>(            \
             _so_memberNames,                                                     \
-            soser::toStrArr<soser::argCount(#__VA_ARGS__)>(__VA_ARGS__));        \
+            soser::serializeObject<soser::argCount(#__VA_ARGS__)>(__VA_ARGS__)); \
     }
 #endif

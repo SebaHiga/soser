@@ -1,5 +1,6 @@
 #include <iostream>
 #include <vector>
+#include <sstream>
 
 #define SO_USE_STD_OPERATORS
 
