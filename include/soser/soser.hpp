@@ -118,7 +118,7 @@ public:
             if (index <= N) {
                 m_ret.append("\"").append(m_contents[index]).append("\": ").append(str);
                 if (index != N - 1) {
-                    m_ret.append(", ");
+                    pushSeparator();
                 }
             } else {
                 throw std::out_of_range("Cannot insert more object to static "
