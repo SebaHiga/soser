@@ -11,7 +11,7 @@ struct Job {
     std::string m_position = "none";
     int m_years = 0;
 
-    _PACK_THESE_(Job, m_years, m_position);
+    SERIALIZE_THESE(Job, m_years, m_position);
 };
 
 class Person {
@@ -30,7 +30,7 @@ public:
     std::size_t m_age;
     std::vector<Job> m_jobs;
 
-    _PACK_THESE_(Person, m_name, m_lastName, m_jobs);
+    SERIALIZE_THESE(Person, m_name, m_lastName, m_jobs);
 };
 
 int main()

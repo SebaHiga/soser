@@ -36,13 +36,16 @@ public:
     template <typename T>
     constexpr SOSer& operator<<(const T& val)
     {
-        if constexpr (detail::is_numeric<T>) {
+        if constexpr (std::is_arithmetic<T>::value) {
             push(std::to_string(val));
-        } else if constexpr (detail::is_string<T>) {
-            push("\"" + std::string(val) + "\"");
-        } else if constexpr (detail::has_soser_serialize<T>) {
+        } else if constexpr (detail::has_soser_helper<T>::value) {
             push(val._so_serialize());
+        } else if constexpr (detail::is_string<T>::value) {
+            push("\"" + std::string(val) + "\"");
+        } else if constexpr (detail::is_iterable<T>::value) {
+            serializeContainer(val);
         } else {
+            std::cerr << "Error parsing <" << typeid(T).name() << ">\n";
             throw std::logic_error("Not posible to serialize variable");
         }
 
@@ -52,7 +55,11 @@ public:
     template <typename T>
     constexpr SOSer& operator>>(T& val)
     {
-        extractValue(val, pop(true));
+        if constexpr (detail::is_iterable<T>::value && !detail::is_string<T>::value) {
+            deserializeContainer(val);
+        } else {
+            extractValue(val, pop(true));
+        }
 
         return *this;
     }
@@ -60,21 +67,22 @@ public:
     template <typename T>
     constexpr void extractValue(T& val, const std::string_view& data)
     {
-        if constexpr (detail::is_integral<T>) {
+        if constexpr (std::is_integral<T>::value) {
             val = std::stoi(data.data());
-        } else if constexpr (detail::is_floating<T>) {
+        } else if constexpr (std::is_floating_point<T>::value) {
             val = std::stof(data.data());
-        } else if constexpr (detail::is_string<T>) {
-            val = data.substr(1, data.length() - 2);
-        } else if constexpr (detail::has_soser_serialize<T>) {
+        } else if constexpr (detail::has_soser_helper<T>::value) {
             val._so_deserialize(data);
+        } else if constexpr (detail::is_string<T>::value) {
+            val = data.substr(1, data.length() - 2);
         } else {
+            std::cerr << "Error parsing <" << typeid(T).name() << ">\n";
             throw std::logic_error("Not posible to deserialize value");
         }
     }
 
     template <typename CNTR>
-    SOSer& operator<<(const CNTR& container) requires detail::is_container<CNTR>
+    SOSer& serializeContainer(const CNTR& container)
     {
         SOSer<0> tmp(1);
 
@@ -91,14 +99,16 @@ public:
         return *this;
     }
 
-    template <template <class> class CNTR, typename T>
-    SOSer& operator>>(CNTR<T>& container) requires detail::is_container<CNTR<T>>
+    template <typename CNTR, typename = std::enable_if<std::is_default_constructible<typename CNTR::value_type>::value>>
+    SOSer& deserializeContainer(CNTR& container)
     {
+        using val_type = typename CNTR::value_type;
+
         container.clear();
         const auto dataList = getContainerList(m_contents[index]);
 
         for (const auto& d : dataList) {
-            T tmp;
+            val_type tmp;
             extractValue(tmp, d);
             container.emplace_back(std::move(tmp));
         }
@@ -181,7 +191,7 @@ auto deSerializeObject(const std::string_view& content, T&... args)
 } // namespace soser
 
 #ifdef SO_USE_STD_OPERATORS
-#define _PACK_THESE_(TYPE, ...)                                                                     \
+#define SERIALIZE_THESE(TYPE, ...)                                                                     \
     static constexpr std::array<std::string_view, soser::argCount(#__VA_ARGS__)>                    \
         _so_memberNames { soser::iniNames<soser::argCount(#__VA_ARGS__)>(                           \
             #__VA_ARGS__) };                                                                        \
@@ -201,7 +211,7 @@ public:                                                                         
         t._so_deserialize(data);                                                                    \
         return data;                                                                                \
     }                                                                                               \
-    template <soser::detail::not_soser_helper T>                                                    \
+    template <typename T, typename = std::enable_if_t<!soser::detail::is_soser_helper<T>::value>>   \
     friend T& operator<<(T& os, const TYPE& t)                                                      \
     {                                                                                               \
         os << t._so_serialize();                                                                    \
@@ -209,7 +219,7 @@ public:                                                                         
     }
 #else
 
-#define _PACK_THESE_(TYPE, ...)                                                  \
+#define SERIALIZE_THESE(TYPE, ...)                                                  \
     static constexpr std::array<std::string_view, soser::argCount(#__VA_ARGS__)> \
         _so_memberNames { soser::iniNames<soser::argCount(#__VA_ARGS__)>(        \
             #__VA_ARGS__) };                                                     \

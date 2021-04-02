@@ -4,29 +4,38 @@
 
 namespace soser ::detail {
 
+template <typename T, typename = void>
+struct is_iterable : std::false_type {
+};
+
 template <typename T>
-concept is_integral = std::is_integral<T>::value;
+struct is_iterable<T, std::void_t<decltype(std::declval<T>().begin()), decltype(std::declval<T>().end())>>
+    : std::true_type {
+};
+
+template <typename T, typename = void>
+struct has_soser_helper : std::false_type {
+};
+
 template <typename T>
-concept is_floating = std::is_floating_point<T>::value;
+struct has_soser_helper<T, std::void_t<decltype(std::declval<T>()._so_serialize())>> : std::true_type {
+};
+
 template <typename T>
-concept is_numeric = is_integral<T> || is_floating<T>;
+struct is_string
+    : public std::disjunction<
+          std::is_same<char*, typename std::decay_t<T>>,
+          std::is_same<const char*, typename std::decay_t<T>>,
+          std::is_same<std::string, typename std::decay_t<T>>> {
+};
+
+template <typename T, typename = void>
+struct is_soser_helper : std::false_type {
+};
+
 template <typename T>
-concept is_char_array = std::is_same<T, const char*>::value;
-template <typename T>
-concept is_char = std::is_same<T, const char>::value;
-template <typename T>
-concept is_string_class = requires(T str) { str.substr(); };
-template <typename T>
-concept is_string = is_char_array<T> || is_char<T> || is_string_class<T>;
-template <typename T>
-concept has_soser_serialize = requires(T data) { data._so_serialize(); };
-template <typename T>
-concept has_begin = requires(T data) { data.begin(); };
-template <typename T>
-concept is_container = has_begin<T> && !is_string<T>;
-template <typename T>
-concept is_soser_helper = requires(T data) { data.openBracket(); };
-template <typename T>
-concept not_soser_helper = !is_soser_helper<T>;
+struct is_soser_helper<T, std::void_t<decltype(std::declval<T>().openBracket())>>
+    : std::true_type {
+};
 
 } // namespace

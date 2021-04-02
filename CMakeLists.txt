@@ -23,8 +23,7 @@ target_include_directories(soser
     "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>"
 )
 
-# target_compile_features(soser INTERFACE cxx_std_17)
-target_compile_options(soser INTERFACE -std=c++2a)
+target_compile_features(soser INTERFACE cxx_std_17)
 
 if (${BUILD_SAMPLE})
 #Executables and tests

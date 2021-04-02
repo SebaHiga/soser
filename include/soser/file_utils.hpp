@@ -9,7 +9,7 @@
 
 namespace soser {
 
-template <detail::has_soser_serialize T>
+template <typename T>
 bool load(T& data, const std::string& path)
 {
     std::ifstream file(path.c_str(), std::ifstream::in);
@@ -22,7 +22,7 @@ bool load(T& data, const std::string& path)
     return false;
 }
 
-template <detail::has_soser_serialize T>
+template <typename T>
 bool save(T& data, const std::string& path)
 {
     std::ofstream output(path);
