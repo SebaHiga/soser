@@ -10,7 +10,7 @@ struct VectorInt
 {
     std::vector<int> vec_int{1, 2, 3, 4, 5};
 
-    _PACK_THESE_(VectorInt, vec_int);
+    SERIALIZE_THESE(VectorInt, vec_int);
 };
 
 template <typename T>
@@ -42,12 +42,12 @@ struct A{
     A() = default;
     A(int _i) : i(_i) {};
     int i = 1;
-    _PACK_THESE_(A, i);
+    SERIALIZE_THESE(A, i);
 };
 
 struct B{
     std::vector<A> vect_A;
-    _PACK_THESE_(B, vect_A);
+    SERIALIZE_THESE(B, vect_A);
 };
 
 TEST_CASE("Container Support with composed structs", "[struct-struct]")

@@ -11,7 +11,7 @@ struct Structure
     float f = 10.0;
     std::string str = "hello";
 
-    _PACK_THESE_(Structure, i, f, str);
+    SERIALIZE_THESE(Structure, i, f, str);
 };
 
 template <typename T>
@@ -40,13 +40,13 @@ TEST_CASE("Basic structure works", "[struct]")
 
 struct A{
     int i = 42;
-    _PACK_THESE_(A, i);
+    SERIALIZE_THESE(A, i);
 };
 
 struct B{
     int j = 24;
     A a;
-    _PACK_THESE_(B, j, a);
+    SERIALIZE_THESE(B, j, a);
 };
 
 TEST_CASE("Composition", "[struct-struct]")

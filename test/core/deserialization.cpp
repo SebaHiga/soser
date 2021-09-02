@@ -19,7 +19,7 @@ struct Structure
         return !(*this == s);
     }
 
-    _PACK_THESE_(Structure, i, f, str);
+    SERIALIZE_THESE(Structure, i, f, str);
 };
 
 TEST_CASE("Deserealization works", "[struct]")

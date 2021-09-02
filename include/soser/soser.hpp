@@ -24,7 +24,6 @@ public:
     std::array<std::string_view, N> m_contents;
     std::list<std::string> m_list;
     std::size_t index = 0;
-    std::size_t len = 0;
     std::string m_ret = "";
 
     inline void startObject() { m_ret.append("{"); }
@@ -99,7 +98,7 @@ public:
         return *this;
     }
 
-    template <typename CNTR, typename = std::enable_if<std::is_default_constructible<typename CNTR::value_type>::value>>
+    template <typename CNTR>
     SOSer& deserializeContainer(CNTR& container)
     {
         using val_type = typename CNTR::value_type;
@@ -139,7 +138,6 @@ public:
         }
 
         index++;
-        len += str.length() + 2;
     }
 
     std::string_view pop(const bool view = false)

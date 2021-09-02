@@ -8,6 +8,9 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Werror -O3 -std=c++17")
 
+option(BUILD_SAMPLE "Build sample binary" ON)
+option(BUILD_TESTS "Build all tests" OFF)
+
 # Conan
 if (EXISTS ${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
     include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
